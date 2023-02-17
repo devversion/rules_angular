@@ -51,9 +51,6 @@ if (worker.isPersistentWorker(process.argv)) {
     // TODO: Update Angular compiler CLI to properly use FS..
     ts.sys = undefined as unknown as ts.System;
 
-    r.output.write('Rootnames:' + parsedConfig.rootNames.join(', '));
-    r.output.write('\n\n');
-
     const formatHost: ts.FormatDiagnosticsHost = {
       getCanonicalFileName: (f) => f,
       getCurrentDirectory: () => `/`,
@@ -68,6 +65,7 @@ if (worker.isPersistentWorker(process.argv)) {
     const existing = cacheProgram.get(workerKey);
     const host = createCacheCompilerHost(options, fileCache, tsSystem);
 
+    r.output.write(`Rootnames: ${parsedConfig.rootNames.join(', ')}\n`);
     r.output.write(`Re-using program & host: ${!!existing}\n`);
 
     const program = ngtsc.createProgram({
@@ -101,7 +99,7 @@ if (worker.isPersistentWorker(process.argv)) {
       ...program.getNgSemanticDiagnostics(undefined, cancellationToken),
     ];
     if (ngPreEmitDiagnostics.length !== 0) {
-      r.output.write(ts.formatDiagnosticsWithColorAndContext(tsPreEmitDiagnostics, formatHost));
+      r.output.write(ts.formatDiagnosticsWithColorAndContext(ngPreEmitDiagnostics, formatHost));
       return 1;
     }
 
@@ -109,7 +107,7 @@ if (worker.isPersistentWorker(process.argv)) {
     const emitRes = program.emit({});
 
     if (emitRes.diagnostics.length !== 0) {
-      r.output.write(ts.formatDiagnosticsWithColorAndContext(tsPreEmitDiagnostics, formatHost));
+      r.output.write(ts.formatDiagnosticsWithColorAndContext(emitRes.diagnostics, formatHost));
       return 1;
     }
 
