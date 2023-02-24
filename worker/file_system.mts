@@ -16,7 +16,11 @@ const unsupportedFn = () => {
   throw new Error('Unsupported');
 };
 
+let fsId = 0;
+
 export class FileSystem extends BazelSafeFilesystem {
+  id = fsId++;
+
   private _vol = new Volume();
   private _execroot = path.join(process.cwd(), '../../../');
 
@@ -51,7 +55,7 @@ export class FileSystem extends BazelSafeFilesystem {
   addFile(filePath: string): void {
     filePath = this.resolve(filePath);
 
-    if (this.exists(filePath)) {
+    if (this.exists(filePath, true)) {
       return;
     }
 
@@ -60,7 +64,6 @@ export class FileSystem extends BazelSafeFilesystem {
     this._vol.mkdirSync(parentDir, {recursive: true});
 
     const stat = this.diskLstat(filePath);
-
     if (stat?.isSymbolicLink()) {
       const symlink = this.diskReadlink(filePath);
       this.addFile(symlink);
@@ -86,7 +89,7 @@ export class FileSystem extends BazelSafeFilesystem {
     fs.writeFileSync(this.toDiskPath(path), data, exclusive ? {flag: 'wx'} : undefined);
   }
 
-  exists(filePath: string): boolean {
+  exists(filePath: string, internal = false): boolean {
     return this._vol.existsSync(this.resolve(filePath));
   }
 
@@ -205,10 +208,10 @@ export class FileSystem extends BazelSafeFilesystem {
     return `/${path.relative(this._execroot, diskPath)}`;
   }
 
-  static initialize(inputs: blaze.worker.WorkRequest['inputs']): FileSystem {
+  static initialize(inputs: Iterable<string>): FileSystem {
     const fs = new FileSystem();
     for (const f of inputs) {
-      fs.addFile(`/${f.path}`);
+      fs.addFile(f);
     }
     return fs;
   }
