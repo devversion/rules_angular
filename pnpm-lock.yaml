@@ -10,7 +10,10 @@ importers:
     devDependencies:
       '@angular/compiler-cli':
         specifier: ^19.0.1
-        version: 19.0.1(@angular/compiler@19.0.1)(typescript@5.6.3)
+        version: 19.0.1(@angular/compiler@19.0.1(@angular/core@19.0.1(rxjs@7.8.1)(zone.js@0.15.0)))(typescript@5.6.3)
+      '@angular/core':
+        specifier: ^19.0.1
+        version: 19.0.1(rxjs@7.8.1)(zone.js@0.15.0)
       '@bazel/buildifier':
         specifier: ^7.3.1
         version: 7.3.1
@@ -20,6 +23,9 @@ importers:
       memfs:
         specifier: ^4.14.0
         version: 4.14.0
+      prettier:
+        specifier: ^3.4.1
+        version: 3.4.1
       typescript:
         specifier: 5.6.3
         version: 5.6.3
@@ -46,6 +52,13 @@ packages:
     peerDependenciesMeta:
       '@angular/core':
         optional: true
+
+  '@angular/core@19.0.1':
+    resolution: {integrity: sha512-+VpWcg2aC/dY9TM6fsj00enZ6RP5wpRqk/SeRe3UP3Je/n+vWIgHJTb1ZLNeOIvDaE86BhKPMwFS0QVjoEGQFA==}
+    engines: {node: ^18.19.1 || ^20.11.1 || >=22.0.0}
+    peerDependencies:
+      rxjs: ^6.5.3 || ^7.4.0
+      zone.js: ~0.15.0
 
   '@babel/code-frame@7.26.2':
     resolution: {integrity: sha512-RJlIHRueQgwWitWgF8OdFYGZX328Ax5BCemNGlqHfplnRT9ESi8JkFlvaVYbS+UubVY6dpv87Fs2u5M29iNFVQ==}
@@ -258,6 +271,11 @@ packages:
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
+  prettier@3.4.1:
+    resolution: {integrity: sha512-G+YdqtITVZmOJje6QkXQWzl3fSfMxFwm1tjTyo9exhkmWSqC4Yhd1+lug++IlR2mvRVAxEDDWYkQdeSztajqgg==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   readdirp@4.0.2:
     resolution: {integrity: sha512-yDMz9g+VaZkqBYS/ozoBJwaBhTbZo3UNYQHNRw1D3UFQB8oHB4uS/tAODO+ZLjGWmUbKnIlOWO+aaIiAxrUWHA==}
     engines: {node: '>= 14.16.0'}
@@ -268,6 +286,9 @@ packages:
   require-directory@2.1.1:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
     engines: {node: '>=0.10.0'}
+
+  rxjs@7.8.1:
+    resolution: {integrity: sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==}
 
   semver@6.3.1:
     resolution: {integrity: sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==}
@@ -334,6 +355,9 @@ packages:
     resolution: {integrity: sha512-7dSzzRQ++CKnNI/krKnYRV7JKKPUXMEh61soaHKg9mrWEhzFWhFnxPxGl+69cD1Ou63C13NUPCnmIcrvqCuM6w==}
     engines: {node: '>=12'}
 
+  zone.js@0.15.0:
+    resolution: {integrity: sha512-9oxn0IIjbCZkJ67L+LkhYWRyAy7axphb3VgE2MBDlOqnmHMPWGYMxJxBYFueFq/JGY2GMwS0rU+UCLunEmy5UA==}
+
 snapshots:
 
   '@ampproject/remapping@2.3.0':
@@ -341,9 +365,9 @@ snapshots:
       '@jridgewell/gen-mapping': 0.3.5
       '@jridgewell/trace-mapping': 0.3.25
 
-  '@angular/compiler-cli@19.0.1(@angular/compiler@19.0.1)(typescript@5.6.3)':
+  '@angular/compiler-cli@19.0.1(@angular/compiler@19.0.1(@angular/core@19.0.1(rxjs@7.8.1)(zone.js@0.15.0)))(typescript@5.6.3)':
     dependencies:
-      '@angular/compiler': 19.0.1
+      '@angular/compiler': 19.0.1(@angular/core@19.0.1(rxjs@7.8.1)(zone.js@0.15.0))
       '@babel/core': 7.26.0
       '@jridgewell/sourcemap-codec': 1.5.0
       chokidar: 4.0.1
@@ -356,9 +380,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@angular/compiler@19.0.1':
+  '@angular/compiler@19.0.1(@angular/core@19.0.1(rxjs@7.8.1)(zone.js@0.15.0))':
     dependencies:
       tslib: 2.8.1
+    optionalDependencies:
+      '@angular/core': 19.0.1(rxjs@7.8.1)(zone.js@0.15.0)
+
+  '@angular/core@19.0.1(rxjs@7.8.1)(zone.js@0.15.0)':
+    dependencies:
+      rxjs: 7.8.1
+      tslib: 2.8.1
+      zone.js: 0.15.0
 
   '@babel/code-frame@7.26.2':
     dependencies:
@@ -575,11 +607,17 @@ snapshots:
 
   picocolors@1.1.1: {}
 
+  prettier@3.4.1: {}
+
   readdirp@4.0.2: {}
 
   reflect-metadata@0.2.2: {}
 
   require-directory@2.1.1: {}
+
+  rxjs@7.8.1:
+    dependencies:
+      tslib: 2.8.1
 
   semver@6.3.1: {}
 
@@ -636,3 +674,5 @@ snapshots:
       string-width: 4.2.3
       y18n: 5.0.8
       yargs-parser: 21.1.1
+
+  zone.js@0.15.0: {}

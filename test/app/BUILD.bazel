@@ -1,0 +1,10 @@
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+
+ts_project(
+    name = "app",
+    srcs = glob(["**/*.ts"]),
+    supports_workers = 1,
+    tsc_worker = "//worker",
+    tsconfig = "tsconfig.json",
+    deps = ["//:node_modules/@angular/core"],
+)

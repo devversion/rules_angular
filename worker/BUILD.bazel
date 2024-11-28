@@ -1,5 +1,6 @@
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -10,7 +11,7 @@ copy_file(
 )
 
 ts_project(
-    name = "worker",
+    name = "worker_lib",
     srcs = glob([
         "**/*.mts",
         "**/*.cts",
@@ -24,4 +25,10 @@ ts_project(
         "//:node_modules/memfs",
         "//:node_modules/typescript",
     ],
+)
+
+js_binary(
+    name = "worker",
+    data = [":worker_lib"],
+    entry_point = ":index.mjs",
 )

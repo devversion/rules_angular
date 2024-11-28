@@ -1,6 +1,7 @@
-import ts from 'typescript';
-import {FileCache} from './cache/file_cache.mjs';
-import * as ngtsc from '@angular/compiler-cli';
+import ts from "typescript";
+import { FileCache } from "./cache/file_cache.mjs";
+import * as ngtsc from "@angular/compiler-cli";
+import * as nodeFs from "node:fs";
 
 export function createCacheCompilerHost(
   options: ts.CompilerOptions,
@@ -14,7 +15,7 @@ export function createCacheCompilerHost(
 
   // This should never happen as `ts.createCompilerHost` always sets it.
   if (defaultLibLocation === undefined) {
-    throw new Error('Could not determine default TypeScript lib location.');
+    throw new Error("Could not determine default TypeScript lib location.");
   }
 
   // For the worker, we will re-use the same program. TypeScript and the Angular Compiler
@@ -27,7 +28,7 @@ export function createCacheCompilerHost(
   base.readResource = (fileName) => {
     // Used cached source file if it's still valid.
     const cachedFile = cache.getCache(fileName);
-    if (cachedFile !== undefined && typeof cachedFile === 'string') {
+    if (cachedFile !== undefined && typeof cachedFile === "string") {
       return cachedFile;
     }
     const diskContent = fs.readFile(fs.resolve(fileName));
@@ -38,7 +39,7 @@ export function createCacheCompilerHost(
     if (digest === undefined) {
       throw new Error(`No digest found for resource file: ${fileName}`);
     }
-    cache.putCache(fileName, {digest, value: diskContent});
+    cache.putCache(fileName, { digest, value: diskContent });
     return diskContent;
   };
 
@@ -50,31 +51,48 @@ export function createCacheCompilerHost(
   ): ts.SourceFile | undefined {
     // Used cached source file if it's still valid.
     const cachedFile = cache.getCache(fileName);
-    if (cachedFile !== undefined && typeof cachedFile !== 'string') {
+    if (cachedFile !== undefined && typeof cachedFile !== "string") {
       return cachedFile;
     }
 
-    const isLibFile = defaultLibLocation !== undefined && fileName.startsWith(defaultLibLocation);
-    const createdFile = originalGetSourceFile.call(
-      this,
-      fileName,
-      languageVersionOrOptions,
-      onError,
-      shouldCreateNewSourceFile,
-    );
+    const isLibFile =
+      defaultLibLocation !== undefined &&
+      fileName.startsWith(defaultLibLocation);
+    let createdFile: ts.SourceFile | undefined;
+
+    // Lib files need to be resolved from real disk as they aren't
+    // part of action inputs therefore not part of the virtual FS/host.
+    if (isLibFile) {
+      createdFile = ts.createSourceFile(
+        fileName,
+        nodeFs.readFileSync(fileName, "utf8"),
+        languageVersionOrOptions,
+        false,
+      );
+    } else {
+      createdFile = originalGetSourceFile.call(
+        this,
+        fileName,
+        languageVersionOrOptions,
+        onError,
+        shouldCreateNewSourceFile,
+      );
+    }
 
     if (createdFile !== undefined) {
       // Note: For library files, we will never have a digest. This is because the library is not
       // part of the `WorkRequest` inputs, but rather is part of the worker `js_binary`. To make
       // sure lib files can be cached, we assign an arbitrary digest. The entry would never be evicted
       // by `cache.updateCache` anyway. Bazel will invalidate the worker when the TS package changes.
-      const digest = isLibFile ? new Uint8Array() : cache.getLastDigest(fileName);
+      const digest = isLibFile
+        ? new Uint8Array()
+        : cache.getLastDigest(fileName);
 
       if (digest === undefined) {
         throw new Error(`No digest found for source file: ${fileName}`);
       }
 
-      cache.putCache(fileName, {digest, value: createdFile});
+      cache.putCache(fileName, { digest, value: createdFile });
     }
 
     return createdFile;

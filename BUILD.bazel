@@ -1,12 +1,6 @@
-load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 
 package(default_visibility = ["//visibility:public"])
 
 npm_link_all_packages()
 
-js_binary(
-    name = "worker",
-    data = ["//worker"],
-    entry_point = "//worker:index.mjs",
-)

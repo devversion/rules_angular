@@ -38,17 +38,21 @@ if (worker.isPersistentWorker(process.argv)) {
 
     // Make debugging easier. Forward console error output to the worker response.
     console.error = (...args) => {
-      r.output.write(`\n${args.join(' ')}\n`);
+      r.output.write(`${args.join(' ')}\n`);
     };
 
-    const inputs = new Map<string, Uint8Array>(
+    const inputs = new Map<ngtsc.AbsoluteFsPath, Uint8Array>(
       r.inputs
         // Worker input paths are rooted in our virtual FS at execroot.
-        .map((i) => [`/${i.path}`, i.digest]),
+        .map((i) => [`/${i.path}` as ngtsc.AbsoluteFsPath, i.digest]),
     );
 
     const command = ts.parseCommandLine(args);
-    const fs = FileSystem.initialize(inputs.keys());
+    const fs = new FileSystem(Array.from(inputs.keys()));
+
+    // Note: This is needed because functions like `readConfiguration` do not properly
+    // re-use the passed `fs`, but call `getFileSystem`.
+    ngtsc.setFileSystem(fs);
 
     const modifiedResourceFilePaths =
       existing !== undefined
@@ -63,7 +67,7 @@ if (worker.isPersistentWorker(process.argv)) {
     const options = parsedConfig.options;
 
     // Invalidate the system to ensure we always use the virtual FS/host.
-    ts.sys = undefined as unknown as ts.System;
+    // Object.defineProperty(ts, 'sys', {value: undefined, configurable: true});
 
     const formatHost: ts.FormatDiagnosticsHost = {
       getCanonicalFileName: (f) => f,
@@ -72,6 +76,7 @@ if (worker.isPersistentWorker(process.argv)) {
     };
 
     if (parsedConfig.errors.length) {
+      r.output.write('Config parsing errors:\n');
       r.output.write(ts.formatDiagnosticsWithColorAndContext(parsedConfig.errors, formatHost));
       return 1;
     }
@@ -103,6 +108,7 @@ if (worker.isPersistentWorker(process.argv)) {
       ...program.getTsProgram().getGlobalDiagnostics(cancellationToken),
     ];
     if (tsPreEmitDiagnostics.length !== 0) {
+      r.output.write('Pre-emit diagnostics:\n');
       r.output.write(ts.formatDiagnosticsWithColorAndContext(tsPreEmitDiagnostics, formatHost));
       return 1;
     }
@@ -115,6 +121,7 @@ if (worker.isPersistentWorker(process.argv)) {
       ...program.getNgSemanticDiagnostics(undefined, cancellationToken),
     ];
     if (ngPreEmitDiagnostics.length !== 0) {
+      r.output.write('Angular diagnostics:\n');
       r.output.write(ts.formatDiagnosticsWithColorAndContext(ngPreEmitDiagnostics, formatHost));
       return 1;
     }
@@ -126,6 +133,7 @@ if (worker.isPersistentWorker(process.argv)) {
     });
 
     if (emitRes.diagnostics.length !== 0) {
+      r.output.write('Emit diagnostics:\n');
       r.output.write(ts.formatDiagnosticsWithColorAndContext(emitRes.diagnostics, formatHost));
       return 1;
     }

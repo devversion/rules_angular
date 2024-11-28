@@ -1,5 +1,0 @@
-{
-    "bazel.lsp.command": "/usr/local/google/home/pgschwendtner/bin/starpls-linux-amd64",
-    "git.decorations.enabled": true,
-    "git.openRepositoryInParentFolders": "never"
-}
