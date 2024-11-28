@@ -1,10 +1,12 @@
-import {Cache} from './cache.mjs';
-import ts from 'typescript';
+import { Cache } from "./base.mjs";
+import ts from "typescript";
 
 /** Cache entry for `FileCache` */
 export interface SourceFileEntry {
-  digest: Uint8Array; // blaze's opaque digest of the file
+  // blaze's opaque digest of the file
+  digest: Uint8Array;
   // TODO: this mix is non-ideal?
+  // String is needed since we also use this cache for storing templates!
   value: ts.SourceFile | string;
 }
 
@@ -17,7 +19,7 @@ const DEFAULT_MAX_MEM_USAGE = 1024 * (1 << 20); /* 1 MB */
  * Expected digests must be set (using updateCache) before using the cache.
  */
 export class FileCache {
-  private fileCache = new Cache<SourceFileEntry>('file');
+  private fileCache = new Cache<SourceFileEntry>("file");
   /**
    * FileCache does not know how to construct Bazel's opaque digests. This
    * field caches the last (or current) compile run's digests, so that code
@@ -52,7 +54,7 @@ export class FileCache {
       // Evict the file entry if the digest has changed.
       const entry = this.fileCache.get(path, /*updateCache=*/ false);
       if (entry && !isSameDigest(entry.digest, digest)) {
-        console.error('evicting', path);
+        console.error("evicting", path);
         this.fileCache.delete(path);
       }
     }

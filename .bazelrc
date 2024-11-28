@@ -1,2 +1,32 @@
 common --@aspect_rules_ts//ts:skipLibCheck=always
 common --@aspect_rules_ts//ts:default_to_tsc_transpiler
+
+# For remote testing
+# -----
+
+# The following --define=EXECUTOR=remote will be able to be removed
+# once https://github.com/bazelbuild/bazel/issues/7254 is fixed
+build:remote --define=EXECUTOR=remote
+
+# Set a higher timeout value, just in case.
+build:remote --remote_timeout=600
+
+# Bazel detects maximum number of jobs based on host resources.
+# Since we run remotely, we can increase this number significantly.
+common:remote --jobs=200
+
+build:remote --google_default_credentials
+
+# Force remote exeuctions to consider the entire run as linux
+build:remote --cpu=k8
+build:remote --host_cpu=k8
+
+# Toolchain and platform related flags
+build:remote --host_platform=@devinfra//bazel/remote-execution:platform
+build:remote --platforms=@devinfra//bazel/remote-execution:platform
+
+# Remote instance and caching
+build:remote --remote_instance_name=projects/internal-200822/instances/primary_instance
+build:remote --bes_instance_name=internal-200822
+build:remote --remote_cache=remotebuildexecution.googleapis.com
+build:remote --remote_executor=remotebuildexecution.googleapis.com

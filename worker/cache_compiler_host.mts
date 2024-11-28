@@ -1,5 +1,5 @@
 import ts from "typescript";
-import { FileCache } from "./cache/file_cache.mjs";
+import { FileCache } from "./file_cache/file_cache.mjs";
 import * as ngtsc from "@angular/compiler-cli";
 import * as nodeFs from "node:fs";
 

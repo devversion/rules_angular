@@ -1,143 +1,44 @@
-import worker from './protocol/worker.cjs';
-import * as ngtsc from '@angular/compiler-cli';
-import ts from 'typescript';
-import {FileSystem} from './file_system.mjs';
-import {createCacheCompilerHost} from './cache_compiler_host.mjs';
-import {FileCache} from './cache/file_cache.mjs';
-import {createCancellationToken} from './cancellation_token.mjs';
-import {diffWorkerInputsForModifiedResources} from './modified_resources.mjs';
-
-class WorkerEntry {
-  constructor(public program: ngtsc.NgtscProgram, public lastInputs: Map<string, Uint8Array>) {}
-}
-
-const cacheProgram = new Map<string, WorkerEntry>();
-const fileCache = new FileCache();
+import { FileCache } from "./file_cache/file_cache.mjs";
+import { executeBuild } from "./loop.mjs";
+import { getArgsFromParamsFile } from "./params_arg_file.mjs";
+import { ProgramCache } from "./program_cache.mjs";
+import worker from "./protocol/worker.cjs";
 
 if (!worker.isPersistentWorker(process.argv)) {
-  if (!process.cwd().includes('sandbox')) {
-    throw new Error(`It's disallowed to compile outside of sandbox/or outside of a worker.`);
+  const isRemoteExecution = process.cwd().startsWith("/b/f/w/");
+
+  // Detect if we run outside sandbox and without RBE.
+  // This is disallowed as it can result in TS picking up unrelated files,
+  // specifically on Windows.
+  if (!isRemoteExecution && !process.cwd().includes("sandbox")) {
+    throw new Error(
+      `It's disallowed to compile outside of sandbox/or outside of a worker.`,
+    );
   }
 
-  // TODO: Normal sandbox execution. RBE executes in a worker?
+  const exitCode = await executeBuild(getArgsFromParamsFile(), null);
+  process.exitCode = exitCode;
 }
 
 if (worker.isPersistentWorker(process.argv)) {
+  const fileCache = new FileCache();
+  const programCache: ProgramCache = new Map();
+
   worker.enterWorkerLoop(async (r) => {
     if (r.inputs === undefined) {
-      throw new Error('No inputs specified in `WorkRequest`.');
+      throw new Error("No inputs specified in `WorkRequest`.");
     }
 
-    const args = r.arguments;
-    const project = args[args.indexOf('--project') + 1];
-    const outDir = args[args.lastIndexOf('--outDir') + 1];
-    const declarationDir = args[args.lastIndexOf('--declarationDir') + 1];
-    const rootDir = args[args.lastIndexOf('--rootDir') + 1];
-    const workerKey = `${project} @ ${outDir} @ ${declarationDir} @ ${rootDir}`;
-    const existing = cacheProgram.get(workerKey);
-
-    // Make debugging easier. Forward console error output to the worker response.
+    // Make debugging easier. Forward console error output to the worker
+    // response.
     console.error = (...args) => {
-      r.output.write(`${args.join(' ')}\n`);
+      r.output.write(`${args.join(" ")}\n`);
     };
 
-    const inputs = new Map<ngtsc.AbsoluteFsPath, Uint8Array>(
-      r.inputs
-        // Worker input paths are rooted in our virtual FS at execroot.
-        .map((i) => [`/${i.path}` as ngtsc.AbsoluteFsPath, i.digest]),
-    );
-
-    const command = ts.parseCommandLine(args);
-    const fs = new FileSystem(Array.from(inputs.keys()));
-
-    // Note: This is needed because functions like `readConfiguration` do not properly
-    // re-use the passed `fs`, but call `getFileSystem`.
-    ngtsc.setFileSystem(fs);
-
-    const modifiedResourceFilePaths =
-      existing !== undefined
-        ? diffWorkerInputsForModifiedResources(inputs, existing.lastInputs)
-        : null;
-
-    // Update cache, evicting changed files and their AST.
-    fileCache.updateCache(inputs);
-
-    // Populate options from command line arguments.
-    const parsedConfig = ngtsc.readConfiguration(command.options.project!, command.options, fs);
-    const options = parsedConfig.options;
-
-    // Invalidate the system to ensure we always use the virtual FS/host.
-    // Object.defineProperty(ts, 'sys', {value: undefined, configurable: true});
-
-    const formatHost: ts.FormatDiagnosticsHost = {
-      getCanonicalFileName: (f) => f,
-      getCurrentDirectory: () => fs.pwd(),
-      getNewLine: () => '\n',
-    };
-
-    if (parsedConfig.errors.length) {
-      r.output.write('Config parsing errors:\n');
-      r.output.write(ts.formatDiagnosticsWithColorAndContext(parsedConfig.errors, formatHost));
-      return 1;
-    }
-
-    const host = createCacheCompilerHost(options, fileCache, fs, modifiedResourceFilePaths);
-
-    r.output.write(`Root names: ${parsedConfig.rootNames.join(', ')}\n`);
-    r.output.write(`Re-using program & host: ${!!existing}\n`);
-
-    const program = new ngtsc.NgtscProgram(
-      parsedConfig.rootNames,
-      options,
-      host,
-      existing?.program,
-    );
-
-    if (existing !== undefined) {
-      existing.program = program;
-      existing.lastInputs = inputs;
-    } else {
-      cacheProgram.set(workerKey, new WorkerEntry(program, inputs));
-    }
-
-    const cancellationToken = createCancellationToken(r.signal);
-
-    const tsPreEmitDiagnostics = [
-      ...program.getTsSyntacticDiagnostics(undefined, cancellationToken),
-      ...program.getTsSemanticDiagnostics(undefined, cancellationToken),
-      ...program.getTsProgram().getGlobalDiagnostics(cancellationToken),
-    ];
-    if (tsPreEmitDiagnostics.length !== 0) {
-      r.output.write('Pre-emit diagnostics:\n');
-      r.output.write(ts.formatDiagnosticsWithColorAndContext(tsPreEmitDiagnostics, formatHost));
-      return 1;
-    }
-
-    // Ensure analyzing first.
-    await program.loadNgStructureAsync();
-
-    const ngPreEmitDiagnostics = [
-      ...program.getNgStructuralDiagnostics(cancellationToken),
-      ...program.getNgSemanticDiagnostics(undefined, cancellationToken),
-    ];
-    if (ngPreEmitDiagnostics.length !== 0) {
-      r.output.write('Angular diagnostics:\n');
-      r.output.write(ts.formatDiagnosticsWithColorAndContext(ngPreEmitDiagnostics, formatHost));
-      return 1;
-    }
-
-    // Emit.
-    const emitRes = program.emit({
-      cancellationToken,
-      forceEmit: true,
+    return await executeBuild(r.arguments, {
+      fileCache,
+      programCache,
+      req: r,
     });
-
-    if (emitRes.diagnostics.length !== 0) {
-      r.output.write('Emit diagnostics:\n');
-      r.output.write(ts.formatDiagnosticsWithColorAndContext(emitRes.diagnostics, formatHost));
-      return 1;
-    }
-
-    return emitRes.emitSkipped ? 1 : 0;
   });
 }

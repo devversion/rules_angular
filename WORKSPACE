@@ -2,7 +2,6 @@ workspace(name = "rules_angular")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
     name = "aspect_rules_ts",
     sha256 = "9acd128abe77397505148eaa6895faed57839560dbf2177dd6285e51235e2724",
@@ -45,3 +44,10 @@ npm_translate_lock(
 load("@npm//:repositories.bzl", "npm_repositories")
 
 npm_repositories()
+
+http_archive(
+    name = "devinfra",
+    sha256 = "d05b113375bf2aab5b6ab5ab1cd02a554b1b5ab34caeb32c3100f5288640caaa",
+    strip_prefix = "dev-infra-9ad44d7add69b53cec32d6486e9e8a83e7ec6622",
+    url = "https://github.com/angular/dev-infra/archive/9ad44d7add69b53cec32d6486e9e8a83e7ec6622.zip",
+)

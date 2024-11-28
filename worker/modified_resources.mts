@@ -1,4 +1,4 @@
-import {isSameDigest} from './cache/file_cache.mjs';
+import { isSameDigest } from "./file_cache/file_cache.mjs";
 
 const resourceFileRegex = /\.(css|html)$/;
 

@@ -4,22 +4,20 @@ import path from "path";
 import * as ngtsc from "@angular/compiler-cli";
 import { AbsoluteFsPath } from "@angular/compiler-cli";
 import { BazelSafeFilesystem } from "./bazel_safe_filesystem.mjs";
+import { execrootDiskPath } from "./execroot.mjs";
 
 const READ_FROM_DISK_PLACEHOLDER = "@@READ--FROM-DISK@@";
 
 let fsId = 0;
 
-export class FileSystem extends BazelSafeFilesystem {
+export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
   id = fsId++;
 
   private _vol = new Volume();
 
-  // Walk up blaze-out/<mode>/bin.
-  private _execroot = path.join(process.cwd(), "../../../");
-
   // `js_binary` always runs with working directory in `bazel-out/<..>/bin`.
   private _diskCwd = process.cwd();
-  private _virtualCwd = `/${path.relative(this._execroot, this._diskCwd)}`;
+  private _virtualCwd = `/${path.relative(execrootDiskPath, this._diskCwd)}`;
 
   constructor(inputs: AbsoluteFsPath[]) {
     super();
@@ -126,11 +124,11 @@ export class FileSystem extends BazelSafeFilesystem {
   }
 
   private toDiskPath(filePath: string): string {
-    return path.join(this._execroot, this.resolve(filePath));
+    return path.join(execrootDiskPath), this.resolve(filePath);
   }
 
   private fromDiskPath(diskPath: string): AbsoluteFsPath {
-    const relative = path.relative(this._execroot, diskPath);
+    const relative = path.relative(execrootDiskPath, diskPath);
     if (relative.startsWith("..")) {
       throw new Error(
         `Unexpected disk path that cannot be part of execroot: ${diskPath}`,
