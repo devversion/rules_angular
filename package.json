@@ -1,0 +1,21 @@
+{
+  "name": "rules_angular",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "pnpm": {
+    "onlyBuiltDependencies": []
+  },
+  "devDependencies": {
+    "@angular/compiler-cli": "^19.0.1",
+    "@bazel/buildifier": "^7.3.1",
+    "@types/node": "^22.10.1",
+    "memfs": "^4.14.0",
+    "typescript": "5.6.3"
+  }
+}

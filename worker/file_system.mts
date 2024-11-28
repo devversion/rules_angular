@@ -1,7 +1,5 @@
 import ts from 'typescript';
-import {blaze} from './worker_protocol.cjs';
 import {Volume} from 'memfs';
-import {matchFiles} from './file_system_match_files.mjs';
 import fs, {Dirent} from 'fs';
 import path from 'path';
 import * as ngtsc from '@angular/compiler-cli';
@@ -10,11 +8,6 @@ import {BazelSafeFilesystem} from './bazel_safe_filesystem.mjs';
 
 // Original TS file system options. Can be read on file load.
 const useCaseSensitiveFileNames = ts.sys.useCaseSensitiveFileNames;
-const typeScriptExecutingFilePath = ts.sys.getExecutingFilePath();
-
-const unsupportedFn = () => {
-  throw new Error('Unsupported');
-};
 
 let fsId = 0;
 
@@ -22,40 +15,40 @@ export class FileSystem extends BazelSafeFilesystem {
   id = fsId++;
 
   private _vol = new Volume();
+
+  // Walk up blaze-out/<mode>/bin.
   private _execroot = path.join(process.cwd(), '../../../');
 
-  // `js_binary` always runs with working directory in `bazel-bin`.
-  private _bazelBin = process.cwd();
-  private _virtualBazelBinRoot = `/${path.relative(this._execroot, this._bazelBin)}`;
+  // `js_binary` always runs with working directory in `bazel-out/<..>/bin`.
+  private _diskCwd = process.cwd();
+  private _virtualCwd = `/${path.relative(this._execroot, this._diskCwd)}`;
 
-  // Never resolve using the real `process.cwd()`. We are in a partially virtual FS,
-  // everything is rooted in the bazel-bin.
+  // Never resolve using the real `process.cwd()`. We are in a virtual FS where
+  // the `bazel` bin directory serves as our root via `/`.
   resolve(...segments: string[]): ngtsc.AbsoluteFsPath {
-    return path.resolve(this._virtualBazelBinRoot, ...segments) as ngtsc.AbsoluteFsPath;
+    return path.resolve(this._virtualCwd, ...segments) as ngtsc.AbsoluteFsPath;
   }
 
   pwd(): ngtsc.AbsoluteFsPath {
     // The `ts_project` rules passes options like `--project` relative to the bazel-bin,
     // so we will mimic the execution running with this as working directory.
-    return this._virtualBazelBinRoot as ngtsc.AbsoluteFsPath;
+    return this._virtualCwd as ngtsc.AbsoluteFsPath;
   }
 
   readdir(path: ngtsc.AbsoluteFsPath): ngtsc.PathSegment[] {
-    return this._vol.readdirSync(this.resolve(path)) as ngtsc.PathSegment[];
+    return this._vol.readdirSync(path) as ngtsc.PathSegment[];
   }
 
   stat(path: ngtsc.AbsoluteFsPath): ngtsc.FileStats {
-    return this._vol.statSync(this.resolve(path));
+    return this._vol.statSync(path);
   }
 
   lstat(path: ngtsc.AbsoluteFsPath): ngtsc.FileStats {
-    return this._vol.lstatSync(this.resolve(path));
+    return this._vol.lstatSync(path);
   }
 
-  addFile(filePath: string): void {
-    filePath = this.resolve(filePath);
-
-    if (this.exists(filePath, true)) {
+  addFile(filePath: AbsoluteFsPath): void {
+    if (this.exists(filePath)) {
       return;
     }
 
@@ -89,8 +82,8 @@ export class FileSystem extends BazelSafeFilesystem {
     fs.writeFileSync(this.toDiskPath(path), data, exclusive ? {flag: 'wx'} : undefined);
   }
 
-  exists(filePath: string, internal = false): boolean {
-    return this._vol.existsSync(this.resolve(filePath));
+  exists(filePath: ngtsc.AbsoluteFsPath): boolean {
+    return this._vol.existsSync(filePath);
   }
 
   existsDirectory(filePath: string): boolean {
@@ -115,7 +108,7 @@ export class FileSystem extends BazelSafeFilesystem {
     include?: readonly string[],
     depth?: number,
   ): string[] {
-    if (matchFiles === undefined) {
+    if (ts.matchFiles === undefined) {
       throw Error(
         'Unable to read directory in virtual file system host. This means that ' +
           'TypeScript changed its file matching internals.\n\nPlease consider downgrading your ' +
@@ -123,7 +116,7 @@ export class FileSystem extends BazelSafeFilesystem {
       );
     }
 
-    return matchFiles!(
+    return ts.matchFiles!(
       this.resolve(path),
       extensions,
       exclude,
@@ -135,39 +128,6 @@ export class FileSystem extends BazelSafeFilesystem {
       (p) => this.realpath(p as AbsoluteFsPath),
       (p) => this.existsDirectory(p),
     );
-  }
-
-  toTypeScriptSystem(): ts.System {
-    return {
-      getCurrentDirectory: () => this.pwd(),
-      getExecutingFilePath: () => this.fromDiskPath(typeScriptExecutingFilePath),
-      resolvePath: this.resolve.bind(this),
-
-      // Read operations. Using virtual FS.
-      realpath: this.realpath.bind(this),
-      fileExists: this.exists.bind(this),
-      readDirectory: this.readDirectory.bind(this),
-      directoryExists: this.existsDirectory.bind(this),
-      getDirectories: (p) => [...this.getDirectoryEntries(p).directories],
-      // NOTE: Real FS, but guarded for hermeticity.
-      readFile: this.readFile.bind(this),
-
-      // Watch operations: None
-      watchFile: unsupportedFn,
-      watchDirectory: unsupportedFn,
-
-      // Write operations
-      // Note: Real FS, but guarded for hermeticity.
-      createDirectory: unsupportedFn,
-      writeFile: this.writeFile.bind(this),
-
-      // Arbitrary options
-      useCaseSensitiveFileNames: useCaseSensitiveFileNames,
-      write: console.log.bind(console),
-      exit: unsupportedFn,
-      newLine: '\n',
-      args: [],
-    };
   }
 
   private getDirectoryEntries(filePath: string): ts.FileSystemEntries {
@@ -196,7 +156,7 @@ export class FileSystem extends BazelSafeFilesystem {
     }
   }
 
-  private diskReadlink(filePath: string): string {
+  private diskReadlink(filePath: AbsoluteFsPath): AbsoluteFsPath {
     return this.fromDiskPath(fs.readlinkSync(this.toDiskPath(filePath)));
   }
 
@@ -204,14 +164,20 @@ export class FileSystem extends BazelSafeFilesystem {
     return path.join(this._execroot, this.resolve(filePath));
   }
 
-  private fromDiskPath(diskPath: string): string {
-    return `/${path.relative(this._execroot, diskPath)}`;
+  private fromDiskPath(diskPath: string): AbsoluteFsPath {
+    const relative = path.relative(this._execroot, diskPath);
+    if (relative.startsWith('..')) {
+      throw new Error(`Unexpected disk path that cannot be part of execroot: ${diskPath}`);
+    }
+    return `/${relative}` as AbsoluteFsPath;
   }
 
   static initialize(inputs: Iterable<string>): FileSystem {
     const fs = new FileSystem();
     for (const f of inputs) {
-      fs.addFile(f);
+      console.error('Adding file', f);
+      // worker file inputs are paths rooted at the execroot.
+      fs.addFile(f as AbsoluteFsPath);
     }
     return fs;
   }

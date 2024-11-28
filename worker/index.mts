@@ -1,4 +1,4 @@
-import worker from './worker.cjs';
+import worker from './protocol/worker.cjs';
 import * as ngtsc from '@angular/compiler-cli';
 import ts from 'typescript';
 import {FileSystem} from './file_system.mjs';
@@ -43,13 +43,12 @@ if (worker.isPersistentWorker(process.argv)) {
 
     const inputs = new Map<string, Uint8Array>(
       r.inputs
-        // Worker input paths are rooted in our virtual FS and in the TS compilation.
+        // Worker input paths are rooted in our virtual FS at execroot.
         .map((i) => [`/${i.path}`, i.digest]),
     );
 
     const command = ts.parseCommandLine(args);
     const fs = FileSystem.initialize(inputs.keys());
-    const tsSystem = fs.toTypeScriptSystem();
 
     const modifiedResourceFilePaths =
       existing !== undefined
@@ -59,22 +58,17 @@ if (worker.isPersistentWorker(process.argv)) {
     // Update cache, evicting changed files and their AST.
     fileCache.updateCache(inputs);
 
-    // Ngtsc virtual FS does not properly wire up `ts.readDirectory`, so we manually patch it globally via `ts.sys`.
-    // https://source.corp.google.com/piper///depot/google3/third_party/javascript/angular2/rc/packages/compiler-cli/src/perform_compile.ts;l=147?q=readCon%20f:angular&ss=piper%2FGoogle%2FPiper
-    ts.sys = {readDirectory: tsSystem.readDirectory} as ts.System;
-
     // Populate options from command line arguments.
     const parsedConfig = ngtsc.readConfiguration(command.options.project!, command.options, fs);
     const options = parsedConfig.options;
 
     // Invalidate the system to ensure we always use the virtual FS/host.
-    // TODO: Update Angular compiler CLI to properly use FS..
     ts.sys = undefined as unknown as ts.System;
 
     const formatHost: ts.FormatDiagnosticsHost = {
       getCanonicalFileName: (f) => f,
       getCurrentDirectory: () => fs.pwd(),
-      getNewLine: () => tsSystem.newLine,
+      getNewLine: () => '\n',
     };
 
     if (parsedConfig.errors.length) {
@@ -82,7 +76,7 @@ if (worker.isPersistentWorker(process.argv)) {
       return 1;
     }
 
-    const host = createCacheCompilerHost(options, fileCache, tsSystem, modifiedResourceFilePaths);
+    const host = createCacheCompilerHost(options, fileCache, fs, modifiedResourceFilePaths);
 
     r.output.write(`Root names: ${parsedConfig.rootNames.join(', ')}\n`);
     r.output.write(`Re-using program & host: ${!!existing}\n`);

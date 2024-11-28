@@ -1,7 +1,5 @@
 import {Cache} from './cache.mjs';
 import ts from 'typescript';
-import path from 'path';
-import {blaze} from '../worker_protocol.cjs';
 
 /** Cache entry for `FileCache` */
 export interface SourceFileEntry {

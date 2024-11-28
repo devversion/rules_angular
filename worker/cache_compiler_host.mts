@@ -5,14 +5,10 @@ import * as ngtsc from '@angular/compiler-cli';
 export function createCacheCompilerHost(
   options: ts.CompilerOptions,
   cache: FileCache,
-  sys: ts.System,
+  fs: ngtsc.FileSystem,
   modifiedResourceFilePaths: Set<string> | null,
 ): ngtsc.CompilerHost {
-  const base: ngtsc.CompilerHost = /* TODO */ (ts as any).createCompilerHostWorker(
-    options,
-    true,
-    sys,
-  );
+  const base: ngtsc.CompilerHost = new ngtsc.NgtscCompilerHost(fs, options);
   const originalGetSourceFile = base.getSourceFile;
   const defaultLibLocation = base.getDefaultLibLocation?.();
 
@@ -22,7 +18,7 @@ export function createCacheCompilerHost(
   }
 
   // For the worker, we will re-use the same program. TypeScript and the Angular Compiler
-  // are able to detect physically changed TS files, but not source files. This is why
+  // are able to detect physically changed TS files, but not resource files. This is why
   // we need to tell ngtsc about e.g. modified template files for re-used build requests.
   if (modifiedResourceFilePaths !== null) {
     base.getModifiedResourceFiles = () => modifiedResourceFilePaths;
@@ -34,7 +30,7 @@ export function createCacheCompilerHost(
     if (cachedFile !== undefined && typeof cachedFile === 'string') {
       return cachedFile;
     }
-    const diskContent = sys.readFile(fileName, 'utf8');
+    const diskContent = fs.readFile(fs.resolve(fileName));
     if (diskContent === undefined) {
       throw new Error(`Could not read resource file: ${fileName}`);
     }
