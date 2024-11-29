@@ -95,6 +95,7 @@ export async function executeBuild(
 
   console.error(`Re-using program & host: ${!!existing}`);
   console.error(`Vanilla TS: ${isVanillaTsCompilation}`);
+  console.error(`Modified resources: ${modifiedResourceFilePaths?.size}`);
 
   const programDescriptor = isVanillaTsCompilation ? VanillaTsProgram : AngularProgram;
   const program = new programDescriptor(parsedConfig.rootNames, options, host, existing?.program);
