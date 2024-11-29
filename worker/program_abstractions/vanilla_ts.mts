@@ -1,6 +1,7 @@
 import ts from "typescript";
 import { ProgramDescriptor } from "./program_descriptor.mjs";
 import assert from "assert";
+import { TsStructureIsReused } from "./struture_reused.mjs";
 
 export class VanillaTsProgram extends ProgramDescriptor {
   private _tsProgram: ts.Program | null = null;
@@ -39,5 +40,10 @@ export class VanillaTsProgram extends ProgramDescriptor {
       false,
       undefined,
     );
+  }
+
+  isStructureReused(): TsStructureIsReused {
+    assert(this._tsProgram, "Expected ngtsc program to be initialized.");
+    return (this._tsProgram as any)["structureIsReused"];
   }
 }

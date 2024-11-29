@@ -11,6 +11,7 @@ import { ProgramCache, WorkerProgramCacheEntry } from "./program_cache.mjs";
 import { isVanillaTsCompilation } from "./constants.mjs";
 import { AngularProgram } from "./program_abstractions/ngtsc.mjs";
 import { VanillaTsProgram } from "./program_abstractions/vanilla_ts.mjs";
+import { TsStructureIsReused } from "./program_abstractions/struture_reused.mjs";
 
 export async function executeBuild(
   args: string[],
@@ -104,7 +105,7 @@ export async function executeBuild(
   }
 
   console.error(`Re-using program & host: ${!!existing}`);
-  console.error(`Vanilla TS: ${isVanillaTsCompilation}\n`);
+  console.error(`Vanilla TS: ${isVanillaTsCompilation}`);
 
   const programDescriptor = isVanillaTsCompilation
     ? VanillaTsProgram
@@ -133,6 +134,11 @@ export async function executeBuild(
 
   // Init program
   await program.init();
+
+  console.error(
+    "Structure reused",
+    TsStructureIsReused[program.isStructureReused()],
+  );
 
   const tsPreEmitDiagnostics = program.getPreEmitDiagnostics(cancellationToken);
   if (tsPreEmitDiagnostics.length !== 0) {

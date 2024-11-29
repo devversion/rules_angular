@@ -2,6 +2,7 @@ import * as ts from "typescript";
 import { ProgramDescriptor } from "./program_descriptor.mjs";
 import * as ngtsc from "@angular/compiler-cli";
 import assert from "assert";
+import { TsStructureIsReused } from "./struture_reused.mjs";
 
 export class AngularProgram extends ProgramDescriptor {
   private _ngtscProgram: ngtsc.NgtscProgram | null = null;
@@ -47,5 +48,10 @@ export class AngularProgram extends ProgramDescriptor {
   emit(cancellationToken: ts.CancellationToken | undefined): ts.EmitResult {
     assert(this._ngtscProgram, "Expected ngtsc program to be initialized.");
     return this._ngtscProgram.emit({ cancellationToken, forceEmit: true });
+  }
+
+  isStructureReused(): TsStructureIsReused {
+    assert(this._ngtscProgram, "Expected ngtsc program to be initialized.");
+    return (this._ngtscProgram?.getTsProgram() as any)["structureIsReused"];
   }
 }

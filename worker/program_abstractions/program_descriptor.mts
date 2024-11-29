@@ -1,5 +1,6 @@
 import * as ngtsc from "@angular/compiler-cli";
 import ts from "typescript";
+import { TsStructureIsReused } from "./struture_reused.mjs";
 
 export abstract class ProgramDescriptor {
   constructor(
@@ -16,4 +17,5 @@ export abstract class ProgramDescriptor {
   abstract emit(
     cancellationToken: ts.CancellationToken | undefined,
   ): ts.EmitResult;
+  abstract isStructureReused(): TsStructureIsReused;
 }
