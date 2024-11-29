@@ -8,10 +8,13 @@ import {createCancellationToken} from './cancellation_token.mjs';
 import {diffWorkerInputsForModifiedResources} from './modified_resources.mjs';
 import assert from 'assert';
 import {ProgramCache, WorkerProgramCacheEntry} from './program_cache.mjs';
-import {isVanillaTsCompilation} from './constants.mjs';
+import {debugMode, isVanillaTsCompilation} from './constants.mjs';
 import {AngularProgram} from './program_abstractions/ngtsc.mjs';
 import {VanillaTsProgram} from './program_abstractions/vanilla_ts.mjs';
 import {TsStructureIsReused} from './program_abstractions/struture_reused.mjs';
+
+// Used for debug counting.
+let buildCount = 0;
 
 export async function executeBuild(
   args: string[],
@@ -93,10 +96,6 @@ export async function executeBuild(
     host = new ngtsc.NgtscCompilerHost(fs, options);
   }
 
-  console.error(`Re-using program & host: ${!!existing}`);
-  console.error(`Vanilla TS: ${isVanillaTsCompilation}`);
-  console.error(`Modified resources: ${modifiedResourceFilePaths?.size}`);
-
   const programDescriptor = isVanillaTsCompilation ? VanillaTsProgram : AngularProgram;
   const program = new programDescriptor(parsedConfig.rootNames, options, host, existing?.program);
 
@@ -115,7 +114,14 @@ export async function executeBuild(
   // Init program
   await program.init();
 
-  console.error('Structure reused', TsStructureIsReused[program.isStructureReused()]);
+  // Debug information.
+  if (debugMode) {
+    console.error(`Worker re-use, number of previous runs: ${buildCount++}`);
+    console.error(`Re-using program & host: ${!!existing}`);
+    console.error(`Vanilla TS: ${isVanillaTsCompilation}`);
+    console.error(`Modified resources: ${modifiedResourceFilePaths?.size}`);
+    console.error('Structure reused', TsStructureIsReused[program.isStructureReused()]);
+  }
 
   const tsPreEmitDiagnostics = program.getPreEmitDiagnostics(cancellationToken);
   if (tsPreEmitDiagnostics.length !== 0) {

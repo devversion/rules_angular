@@ -35,7 +35,7 @@ js_binary(
 )
 
 js_binary(
-    name = "worker_ts",
+    name = "worker_vanilla_ts",
     data = [":worker_lib"],
     entry_point = ":index.mjs",
     fixed_args = ["--vanilla-ts"],
