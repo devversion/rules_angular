@@ -1,12 +1,12 @@
-import { Volume } from "memfs";
-import fs from "fs";
-import path from "path";
-import * as ngtsc from "@angular/compiler-cli";
-import { AbsoluteFsPath } from "@angular/compiler-cli";
-import { BazelSafeFilesystem } from "./bazel_safe_filesystem.mjs";
-import { execrootDiskPath } from "./constants.mjs";
+import {Volume} from 'memfs';
+import fs from 'fs';
+import path from 'path';
+import * as ngtsc from '@angular/compiler-cli';
+import {AbsoluteFsPath} from '@angular/compiler-cli';
+import {BazelSafeFilesystem} from './bazel_safe_filesystem.mjs';
+import {execrootDiskPath} from './constants.mjs';
 
-const READ_FROM_DISK_PLACEHOLDER = "@@READ--FROM-DISK@@";
+const READ_FROM_DISK_PLACEHOLDER = '@@READ--FROM-DISK@@';
 
 let fsId = 0;
 
@@ -58,7 +58,7 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
 
     // Ensure the base directory exists in the virtual volume.
     const parentDir = path.dirname(filePath);
-    this._vol.mkdirSync(parentDir, { recursive: true });
+    this._vol.mkdirSync(parentDir, {recursive: true});
 
     const stat = this.diskLstat(filePath);
     if (stat?.isSymbolicLink()) {
@@ -72,7 +72,7 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
       // would be overly expensive. We just use the virtual FS for fast lookups,
       // directory scans etc.
       this._vol.writeFileSync(filePath, READ_FROM_DISK_PLACEHOLDER, {
-        encoding: "utf8",
+        encoding: 'utf8',
       });
     }
   }
@@ -80,7 +80,7 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
   readFile(filePath: ngtsc.AbsoluteFsPath): string {
     // TODO: guard bazel inputs
     return fs.readFileSync(this.toDiskPath(filePath), {
-      encoding: "utf8",
+      encoding: 'utf8',
     }) as string;
   }
 
@@ -90,15 +90,11 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
     exclusive?: boolean | undefined,
   ): void {
     // TODO: guard
-    fs.writeFileSync(
-      this.toDiskPath(path),
-      data,
-      exclusive ? { flag: "wx" } : undefined,
-    );
+    fs.writeFileSync(this.toDiskPath(path), data, exclusive ? {flag: 'wx'} : undefined);
   }
 
   ensureDir(path: AbsoluteFsPath): void {
-    fs.mkdirSync(this.toDiskPath(path), { recursive: true });
+    fs.mkdirSync(this.toDiskPath(path), {recursive: true});
   }
 
   exists(filePath: ngtsc.AbsoluteFsPath): boolean {
@@ -107,7 +103,7 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
 
   realpath(filePath: AbsoluteFsPath): AbsoluteFsPath {
     return this._vol.realpathSync(this.resolve(filePath), {
-      encoding: "utf8",
+      encoding: 'utf8',
     }) as AbsoluteFsPath;
   }
 
@@ -129,10 +125,8 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
 
   private fromDiskPath(diskPath: string): AbsoluteFsPath {
     const relative = path.relative(execrootDiskPath, diskPath);
-    if (relative.startsWith("..")) {
-      throw new Error(
-        `Unexpected disk path that cannot be part of execroot: ${diskPath}`,
-      );
+    if (relative.startsWith('..')) {
+      throw new Error(`Unexpected disk path that cannot be part of execroot: ${diskPath}`);
     }
     return `/${relative}` as AbsoluteFsPath;
   }

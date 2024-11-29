@@ -1,4 +1,4 @@
-import { ProgramDescriptor } from "./program_abstractions/program_descriptor.mjs";
+import {ProgramDescriptor} from './program_abstractions/program_descriptor.mjs';
 
 export class WorkerProgramCacheEntry {
   constructor(

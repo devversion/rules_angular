@@ -1,7 +1,7 @@
-import ts from "typescript";
-import { ProgramDescriptor } from "./program_descriptor.mjs";
-import assert from "assert";
-import { TsStructureIsReused } from "./struture_reused.mjs";
+import ts from 'typescript';
+import {ProgramDescriptor} from './program_descriptor.mjs';
+import assert from 'assert';
+import {TsStructureIsReused} from './struture_reused.mjs';
 
 export class VanillaTsProgram extends ProgramDescriptor {
   private _tsProgram: ts.Program | null = null;
@@ -18,10 +18,8 @@ export class VanillaTsProgram extends ProgramDescriptor {
     });
   }
 
-  getPreEmitDiagnostics(
-    cancellationToken: ts.CancellationToken | undefined,
-  ): ts.Diagnostic[] {
-    assert(this._tsProgram, "Expected TS program to be initialized.");
+  getPreEmitDiagnostics(cancellationToken: ts.CancellationToken | undefined): ts.Diagnostic[] {
+    assert(this._tsProgram, 'Expected TS program to be initialized.');
 
     return [
       ...this._tsProgram.getSyntacticDiagnostics(undefined, cancellationToken),
@@ -31,19 +29,13 @@ export class VanillaTsProgram extends ProgramDescriptor {
   }
 
   emit(cancellationToken: ts.CancellationToken | undefined): ts.EmitResult {
-    assert(this._tsProgram, "Expected TS program to be initialized.");
+    assert(this._tsProgram, 'Expected TS program to be initialized.');
 
-    return this._tsProgram.emit(
-      undefined,
-      undefined,
-      cancellationToken,
-      false,
-      undefined,
-    );
+    return this._tsProgram.emit(undefined, undefined, cancellationToken, false, undefined);
   }
 
   isStructureReused(): TsStructureIsReused {
-    assert(this._tsProgram, "Expected ngtsc program to be initialized.");
-    return (this._tsProgram as any)["structureIsReused"];
+    assert(this._tsProgram, 'Expected ngtsc program to be initialized.');
+    return (this._tsProgram as any)['structureIsReused'];
   }
 }

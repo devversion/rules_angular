@@ -1,17 +1,17 @@
-import { WorkRequest } from "./protocol/worker.cjs";
-import * as ngtsc from "@angular/compiler-cli";
-import ts from "typescript";
-import { WorkerSandboxFileSystem } from "./file_system.mjs";
-import { createCacheCompilerHost } from "./cache_compiler_host.mjs";
-import { FileCache } from "./file_cache/file_cache.mjs";
-import { createCancellationToken } from "./cancellation_token.mjs";
-import { diffWorkerInputsForModifiedResources } from "./modified_resources.mjs";
-import assert from "assert";
-import { ProgramCache, WorkerProgramCacheEntry } from "./program_cache.mjs";
-import { isVanillaTsCompilation } from "./constants.mjs";
-import { AngularProgram } from "./program_abstractions/ngtsc.mjs";
-import { VanillaTsProgram } from "./program_abstractions/vanilla_ts.mjs";
-import { TsStructureIsReused } from "./program_abstractions/struture_reused.mjs";
+import {WorkRequest} from './protocol/worker.cjs';
+import * as ngtsc from '@angular/compiler-cli';
+import ts from 'typescript';
+import {WorkerSandboxFileSystem} from './file_system.mjs';
+import {createCacheCompilerHost} from './cache_compiler_host.mjs';
+import {FileCache} from './file_cache/file_cache.mjs';
+import {createCancellationToken} from './cancellation_token.mjs';
+import {diffWorkerInputsForModifiedResources} from './modified_resources.mjs';
+import assert from 'assert';
+import {ProgramCache, WorkerProgramCacheEntry} from './program_cache.mjs';
+import {isVanillaTsCompilation} from './constants.mjs';
+import {AngularProgram} from './program_abstractions/ngtsc.mjs';
+import {VanillaTsProgram} from './program_abstractions/vanilla_ts.mjs';
+import {TsStructureIsReused} from './program_abstractions/struture_reused.mjs';
 
 export async function executeBuild(
   args: string[],
@@ -21,10 +21,10 @@ export async function executeBuild(
     programCache: ProgramCache;
   } | null,
 ) {
-  const project = args[args.indexOf("--project") + 1];
-  const outDir = args[args.lastIndexOf("--outDir") + 1];
-  const declarationDir = args[args.lastIndexOf("--declarationDir") + 1];
-  const rootDir = args[args.lastIndexOf("--rootDir") + 1];
+  const project = args[args.indexOf('--project') + 1];
+  const outDir = args[args.lastIndexOf('--outDir') + 1];
+  const declarationDir = args[args.lastIndexOf('--declarationDir') + 1];
+  const rootDir = args[args.lastIndexOf('--rootDir') + 1];
   const workerKey = `${project} @ ${outDir} @ ${declarationDir} @ ${rootDir}`;
   const existing = worker?.programCache.get(workerKey);
 
@@ -36,7 +36,7 @@ export async function executeBuild(
     inputs = new Map(
       worker.req.inputs
         // Worker input paths are rooted in our virtual FS at execroot.
-        .map((i) => [`/${i.path}` as ngtsc.AbsoluteFsPath, i.digest]),
+        .map(i => [`/${i.path}` as ngtsc.AbsoluteFsPath, i.digest]),
     );
   }
 
@@ -60,32 +60,26 @@ export async function executeBuild(
 
   // Update cache, if present, evicting changed files and their AST.
   if (worker !== null) {
-    assert(inputs, "Expected inputs when using persistent file cache.");
+    assert(inputs, 'Expected inputs when using persistent file cache.');
     worker.fileCache.updateCache(inputs);
   }
 
   // Populate options from command line arguments.
-  const parsedConfig = ngtsc.readConfiguration(
-    command.options.project!,
-    command.options,
-    fs,
-  );
+  const parsedConfig = ngtsc.readConfiguration(command.options.project!, command.options, fs);
   const options = parsedConfig.options;
 
   // Invalidate the system to ensure we always use the virtual FS/host.
   // Object.defineProperty(ts, 'sys', {value: undefined, configurable: true});
 
   const formatHost: ts.FormatDiagnosticsHost = {
-    getCanonicalFileName: (f) => f,
+    getCanonicalFileName: f => f,
     getCurrentDirectory: () => fs.pwd(),
-    getNewLine: () => "\n",
+    getNewLine: () => '\n',
   };
 
   if (parsedConfig.errors.length) {
-    console.error("Config parsing errors:\n");
-    console.error(
-      ts.formatDiagnosticsWithColorAndContext(parsedConfig.errors, formatHost),
-    );
+    console.error('Config parsing errors:\n');
+    console.error(ts.formatDiagnosticsWithColorAndContext(parsedConfig.errors, formatHost));
     return 1;
   }
 
@@ -94,12 +88,7 @@ export async function executeBuild(
   // In workers, use a compiler host that leverages the persistent
   // file cache. Otherwise, fall back to an uncached host.
   if (worker !== null) {
-    host = createCacheCompilerHost(
-      options,
-      worker.fileCache,
-      fs,
-      modifiedResourceFilePaths,
-    );
+    host = createCacheCompilerHost(options, worker.fileCache, fs, modifiedResourceFilePaths);
   } else {
     host = new ngtsc.NgtscCompilerHost(fs, options);
   }
@@ -107,25 +96,15 @@ export async function executeBuild(
   console.error(`Re-using program & host: ${!!existing}`);
   console.error(`Vanilla TS: ${isVanillaTsCompilation}`);
 
-  const programDescriptor = isVanillaTsCompilation
-    ? VanillaTsProgram
-    : AngularProgram;
-  const program = new programDescriptor(
-    parsedConfig.rootNames,
-    options,
-    host,
-    existing?.program,
-  );
+  const programDescriptor = isVanillaTsCompilation ? VanillaTsProgram : AngularProgram;
+  const program = new programDescriptor(parsedConfig.rootNames, options, host, existing?.program);
 
   if (inputs !== null) {
     if (existing !== undefined) {
       existing.program = program;
       existing.lastInputs = inputs;
     } else {
-      worker?.programCache.set(
-        workerKey,
-        new WorkerProgramCacheEntry(program, inputs),
-      );
+      worker?.programCache.set(workerKey, new WorkerProgramCacheEntry(program, inputs));
     }
   }
 
@@ -135,27 +114,20 @@ export async function executeBuild(
   // Init program
   await program.init();
 
-  console.error(
-    "Structure reused",
-    TsStructureIsReused[program.isStructureReused()],
-  );
+  console.error('Structure reused', TsStructureIsReused[program.isStructureReused()]);
 
   const tsPreEmitDiagnostics = program.getPreEmitDiagnostics(cancellationToken);
   if (tsPreEmitDiagnostics.length !== 0) {
-    console.error("Pre-emit diagnostics:\n");
-    console.error(
-      ts.formatDiagnosticsWithColorAndContext(tsPreEmitDiagnostics, formatHost),
-    );
+    console.error('Pre-emit diagnostics:\n');
+    console.error(ts.formatDiagnosticsWithColorAndContext(tsPreEmitDiagnostics, formatHost));
     return 1;
   }
 
   // Emit.
   const emitRes = program.emit(cancellationToken);
   if (emitRes.diagnostics.length !== 0) {
-    console.error("Emit diagnostics:\n");
-    console.error(
-      ts.formatDiagnosticsWithColorAndContext(emitRes.diagnostics, formatHost),
-    );
+    console.error('Emit diagnostics:\n');
+    console.error(ts.formatDiagnosticsWithColorAndContext(emitRes.diagnostics, formatHost));
     return 1;
   }
 
