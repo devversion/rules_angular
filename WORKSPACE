@@ -32,17 +32,40 @@ load("@aspect_rules_js//js:toolchains.bzl", "DEFAULT_NODE_VERSION", "rules_js_re
 
 rules_js_register_toolchains(node_version = DEFAULT_NODE_VERSION)
 
-load(":repo_fetch.bzl", "rules_angular_deps_fetch")
+load("@aspect_rules_js//npm:repositories.bzl", "npm_translate_lock")
 
-rules_angular_deps_fetch()
+npm_translate_lock(
+    name = "npm",
+    npmrc = "//:.npmrc",
+    pnpm_lock = "//:pnpm-lock.yaml",
+    verify_node_modules_ignored = "//:.bazelignore",
+)
 
-load(":repo_init.bzl", "rules_angular_deps_init")
+load("@npm//:repositories.bzl", "npm_repositories")
 
-rules_angular_deps_init()
+npm_repositories()
 
 http_archive(
     name = "devinfra",
     sha256 = "d05b113375bf2aab5b6ab5ab1cd02a554b1b5ab34caeb32c3100f5288640caaa",
     strip_prefix = "dev-infra-9ad44d7add69b53cec32d6486e9e8a83e7ec6622",
     url = "https://github.com/angular/dev-infra/archive/9ad44d7add69b53cec32d6486e9e8a83e7ec6622.zip",
+)
+
+http_archive(
+    name = "aspect_rules_esbuild",
+    sha256 = "550e33ddeb86a564b22b2c5d3f84748c6639b1b2b71fae66bf362c33392cbed8",
+    strip_prefix = "rules_esbuild-0.21.0",
+    url = "https://github.com/aspect-build/rules_esbuild/releases/download/v0.21.0/rules_esbuild-v0.21.0.tar.gz",
+)
+
+load("@aspect_rules_esbuild//esbuild:dependencies.bzl", "rules_esbuild_dependencies")
+
+rules_esbuild_dependencies()
+
+load("@aspect_rules_esbuild//esbuild:repositories.bzl", "LATEST_ESBUILD_VERSION", "esbuild_register_toolchains")
+
+esbuild_register_toolchains(
+    name = "esbuild",
+    esbuild_version = LATEST_ESBUILD_VERSION,
 )

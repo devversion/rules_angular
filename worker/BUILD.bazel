@@ -1,3 +1,4 @@
+load("@aspect_rules_esbuild//esbuild:defs.bzl", "esbuild")
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
@@ -20,11 +21,10 @@ ts_project(
     declaration = True,
     tsconfig = "tsconfig.json",
     deps = [
-        "//:root_modules/@types/node",
-        "//:root_modules/memfs",
-        # Dependencies that a consuming repository can/should provide.
-        "@@//:root_modules/@angular/compiler-cli",
-        "@@//:root_modules/typescript",
+        "//:node_modules/@angular/compiler-cli",
+        "//:node_modules/@types/node",
+        "//:node_modules/memfs",
+        "//:node_modules/typescript",
     ],
 )
 
@@ -35,8 +35,25 @@ js_binary(
 )
 
 js_binary(
-    name = "worker_vanilla_ts",
+    name = "worker_ts",
     data = [":worker_lib"],
     entry_point = ":index.mjs",
     fixed_args = ["--vanilla-ts"],
+)
+
+esbuild(
+    name = "bundle",
+    srcs = [":copy_worker_js"],
+    entry_point = ":index.mjs",
+    external = [
+        "typescript",
+        "@angular/compiler-cli",
+    ],
+    format = "esm",
+    minify = True,
+    output = "worker_bundle.mjs",
+    platform = "node",
+    sourcemap = "inline",
+    target = "es2022",
+    deps = [":worker_lib"],
 )
