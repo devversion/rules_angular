@@ -1,8 +1,8 @@
-import * as ngtsc from "@angular/compiler-cli";
+import { ProgramDescriptor } from "./program_abstractions/program_descriptor.mjs";
 
 export class WorkerProgramCacheEntry {
   constructor(
-    public program: ngtsc.NgtscProgram,
+    public program: ProgramDescriptor,
     public lastInputs: Map<string, Uint8Array>,
   ) {}
 }

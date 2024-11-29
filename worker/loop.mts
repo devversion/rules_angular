@@ -8,6 +8,9 @@ import { createCancellationToken } from "./cancellation_token.mjs";
 import { diffWorkerInputsForModifiedResources } from "./modified_resources.mjs";
 import assert from "assert";
 import { ProgramCache, WorkerProgramCacheEntry } from "./program_cache.mjs";
+import { isVanillaTsCompilation } from "./constants.mjs";
+import { AngularProgram } from "./program_abstractions/ngtsc.mjs";
+import { VanillaTsProgram } from "./program_abstractions/vanilla_ts.mjs";
 
 export async function executeBuild(
   args: string[],
@@ -100,9 +103,13 @@ export async function executeBuild(
     host = new ngtsc.NgtscCompilerHost(fs, options);
   }
 
-  console.error(`Re-using program & host: ${!!existing}\n`);
+  console.error(`Re-using program & host: ${!!existing}`);
+  console.error(`Vanilla TS: ${isVanillaTsCompilation}\n`);
 
-  const program = new ngtsc.NgtscProgram(
+  const programDescriptor = isVanillaTsCompilation
+    ? VanillaTsProgram
+    : AngularProgram;
+  const program = new programDescriptor(
     parsedConfig.rootNames,
     options,
     host,
@@ -124,11 +131,10 @@ export async function executeBuild(
   const cancellationToken =
     worker !== null ? createCancellationToken(worker.req.signal) : undefined;
 
-  const tsPreEmitDiagnostics = [
-    ...program.getTsSyntacticDiagnostics(undefined, cancellationToken),
-    ...program.getTsSemanticDiagnostics(undefined, cancellationToken),
-    ...program.getTsProgram().getGlobalDiagnostics(cancellationToken),
-  ];
+  // Init program
+  await program.init();
+
+  const tsPreEmitDiagnostics = program.getPreEmitDiagnostics(cancellationToken);
   if (tsPreEmitDiagnostics.length !== 0) {
     console.error("Pre-emit diagnostics:\n");
     console.error(
@@ -137,27 +143,8 @@ export async function executeBuild(
     return 1;
   }
 
-  // Ensure analyzing first.
-  await program.loadNgStructureAsync();
-
-  const ngPreEmitDiagnostics = [
-    ...program.getNgStructuralDiagnostics(cancellationToken),
-    ...program.getNgSemanticDiagnostics(undefined, cancellationToken),
-  ];
-  if (ngPreEmitDiagnostics.length !== 0) {
-    console.error("Angular diagnostics:\n");
-    console.error(
-      ts.formatDiagnosticsWithColorAndContext(ngPreEmitDiagnostics, formatHost),
-    );
-    return 1;
-  }
-
   // Emit.
-  const emitRes = program.emit({
-    cancellationToken,
-    forceEmit: true,
-  });
-
+  const emitRes = program.emit(cancellationToken);
   if (emitRes.diagnostics.length !== 0) {
     console.error("Emit diagnostics:\n");
     console.error(

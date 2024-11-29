@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { execrootDiskPath } from "./execroot.mjs";
+import { execrootDiskPath } from "./constants.mjs";
 import path from "path";
 
 // Note: For actions supporting workers, the args are put in a params file,

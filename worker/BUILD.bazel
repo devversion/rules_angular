@@ -1,6 +1,6 @@
-load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
-load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -16,8 +16,8 @@ ts_project(
         "**/*.mts",
         "**/*.cts",
     ]),
-    declaration = True,
     data = [":copy_worker_js"],
+    declaration = True,
     tsconfig = "tsconfig.json",
     deps = [
         "//:node_modules/@angular/compiler-cli",
@@ -28,7 +28,14 @@ ts_project(
 )
 
 js_binary(
-    name = "worker",
+    name = "worker_angular",
     data = [":worker_lib"],
     entry_point = ":index.mjs",
+)
+
+js_binary(
+    name = "worker_ts",
+    data = [":worker_lib"],
+    entry_point = ":index.mjs",
+    fixed_args = ["--vanilla-ts"],
 )

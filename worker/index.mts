@@ -35,6 +35,8 @@ if (worker.isPersistentWorker(process.argv)) {
       r.output.write(`${args.join(" ")}\n`);
     };
 
+    console.error(process.argv);
+
     return await executeBuild(r.arguments, {
       fileCache,
       programCache,

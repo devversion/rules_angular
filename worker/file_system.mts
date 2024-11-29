@@ -4,7 +4,7 @@ import path from "path";
 import * as ngtsc from "@angular/compiler-cli";
 import { AbsoluteFsPath } from "@angular/compiler-cli";
 import { BazelSafeFilesystem } from "./bazel_safe_filesystem.mjs";
-import { execrootDiskPath } from "./execroot.mjs";
+import { execrootDiskPath } from "./constants.mjs";
 
 const READ_FROM_DISK_PLACEHOLDER = "@@READ--FROM-DISK@@";
 

@@ -5,9 +5,9 @@
     "target": "esnext",
     "declaration": true,
     "strict": true,
+    "strictPropertyInitialization": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "types": ["node"]
-  },
-  "files": ["index.mts"]
+  }
 }
