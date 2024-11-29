@@ -15,9 +15,15 @@
     "@angular/compiler-cli": "^19.0.1",
     "@angular/core": "^19.0.1",
     "@bazel/buildifier": "^7.3.1",
+    "@rollup/plugin-commonjs": "^28.0.1",
+    "@rollup/plugin-node-resolve": "^15.3.0",
     "@types/node": "^22.10.1",
     "memfs": "^4.14.0",
     "prettier": "^3.4.1",
+    "rollup": "^4.27.4",
     "typescript": "5.6.3"
+  },
+  "dependencies": {
+    "@rollup/plugin-terser": "^0.4.4"
   }
 }

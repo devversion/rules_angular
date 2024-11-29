@@ -53,19 +53,12 @@ http_archive(
 )
 
 http_archive(
-    name = "aspect_rules_esbuild",
-    sha256 = "550e33ddeb86a564b22b2c5d3f84748c6639b1b2b71fae66bf362c33392cbed8",
-    strip_prefix = "rules_esbuild-0.21.0",
-    url = "https://github.com/aspect-build/rules_esbuild/releases/download/v0.21.0/rules_esbuild-v0.21.0.tar.gz",
+    name = "aspect_rules_rollup",
+    sha256 = "c4062681968f5dcd3ce01e09e4ba73670c064744a7046211763e17c98ab8396e",
+    strip_prefix = "rules_rollup-2.0.0",
+    url = "https://github.com/aspect-build/rules_rollup/releases/download/v2.0.0/rules_rollup-v2.0.0.tar.gz",
 )
 
-load("@aspect_rules_esbuild//esbuild:dependencies.bzl", "rules_esbuild_dependencies")
+load("@aspect_rules_rollup//rollup:dependencies.bzl", "rules_rollup_dependencies")
 
-rules_esbuild_dependencies()
-
-load("@aspect_rules_esbuild//esbuild:repositories.bzl", "LATEST_ESBUILD_VERSION", "esbuild_register_toolchains")
-
-esbuild_register_toolchains(
-    name = "esbuild",
-    esbuild_version = LATEST_ESBUILD_VERSION,
-)
+rules_rollup_dependencies()
