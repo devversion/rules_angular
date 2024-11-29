@@ -41,7 +41,7 @@ npm_translate_lock(
     verify_node_modules_ignored = "//:.bazelignore",
 )
 
-load("@npm//:repositories.bzl", "npm_repositories")
+load("@rules_angular_npm//:repositories.bzl", "npm_repositories")
 
 npm_repositories()
 
