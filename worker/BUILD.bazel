@@ -20,10 +20,11 @@ ts_project(
     declaration = True,
     tsconfig = "tsconfig.json",
     deps = [
-        "//:node_modules/@angular/compiler-cli",
-        "//:node_modules/@types/node",
-        "//:node_modules/memfs",
-        "//:node_modules/typescript",
+        "//:root_modules/@types/node",
+        "//:root_modules/memfs",
+        # Dependencies that a consuming repository can/should provide.
+        "@@//:root_modules/@angular/compiler-cli",
+        "@@//:root_modules/typescript",
     ],
 )
 

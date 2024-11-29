@@ -32,18 +32,13 @@ load("@aspect_rules_js//js:toolchains.bzl", "DEFAULT_NODE_VERSION", "rules_js_re
 
 rules_js_register_toolchains(node_version = DEFAULT_NODE_VERSION)
 
-load("@aspect_rules_js//npm:repositories.bzl", "npm_translate_lock")
+load(":repo_fetch.bzl", "rules_angular_deps_fetch")
 
-npm_translate_lock(
-    name = "rules_angular_npm",
-    npmrc = "//:.npmrc",
-    pnpm_lock = "//:pnpm-lock.yaml",
-    verify_node_modules_ignored = "//:.bazelignore",
-)
+rules_angular_deps_fetch()
 
-load("@rules_angular_npm//:repositories.bzl", "npm_repositories")
+load(":repo_init.bzl", "rules_angular_deps_init")
 
-npm_repositories()
+rules_angular_deps_init()
 
 http_archive(
     name = "devinfra",
