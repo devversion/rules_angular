@@ -35,7 +35,7 @@ rules_js_register_toolchains(node_version = DEFAULT_NODE_VERSION)
 load("@aspect_rules_js//npm:repositories.bzl", "npm_translate_lock")
 
 npm_translate_lock(
-    name = "npm",
+    name = "rules_angular_npm",
     npmrc = "//:.npmrc",
     pnpm_lock = "//:pnpm-lock.yaml",
     verify_node_modules_ignored = "//:.bazelignore",
