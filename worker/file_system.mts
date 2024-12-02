@@ -110,7 +110,7 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
     }) as AbsoluteFsPath;
   }
 
-  private diskLstat(filePath: string): fs.Stats | null {
+  private diskLstat(filePath: AbsoluteFsPath): fs.Stats | null {
     try {
       return fs.lstatSync(this.toDiskPath(filePath));
     } catch {
@@ -122,9 +122,9 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
     return this.fromDiskPath(fs.readlinkSync(this.toDiskPath(filePath)));
   }
 
-  private toDiskPath(filePath: string): string {
+  private toDiskPath(filePath: AbsoluteFsPath): string {
     // Resolve at the end to a system-separated path.
-    return nativeSysPath.resolve(nativeSysPath.join(execrootDiskPath, this.resolve(filePath)));
+    return nativeSysPath.resolve(nativeSysPath.join(execrootDiskPath, filePath));
   }
 
   private fromDiskPath(diskPath: string): AbsoluteFsPath {

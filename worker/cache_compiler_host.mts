@@ -61,6 +61,7 @@ export function createCacheCompilerHost(
     // Lib files need to be resolved from real disk as they aren't
     // part of action inputs therefore not part of the virtual FS/host.
     if (isLibFile) {
+      console.error('Default lib paths', fileName, defaultLibLocation);
       createdFile = ts.createSourceFile(
         fileName,
         nodeFs.readFileSync(fileName, 'utf8'),
