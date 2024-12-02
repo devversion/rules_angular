@@ -1,6 +1,7 @@
 import {Volume} from 'memfs';
 import fs from 'fs';
 import path from 'path/posix';
+import nativeSysPath from 'path';
 import * as ngtsc from '@angular/compiler-cli';
 import {AbsoluteFsPath} from '@angular/compiler-cli';
 import {BazelSafeFilesystem} from './bazel_safe_filesystem.mjs';
@@ -16,8 +17,10 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
   private _vol = new Volume();
 
   // `js_binary` always runs with working directory in `bazel-out/<..>/bin`.
-  private _diskCwd = process.cwd();
-  private _virtualCwd = `/${path.relative(execrootDiskPath, this._diskCwd)}`;
+  private _diskCwdSysPath = process.cwd();
+  private _virtualCwd: AbsoluteFsPath = this.normalizePathFragmentToPosix(
+    `/${path.relative(execrootDiskPath, this._diskCwdSysPath)}`,
+  ) as AbsoluteFsPath;
 
   constructor(inputs: AbsoluteFsPath[]) {
     super();
@@ -36,7 +39,7 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
   pwd(): ngtsc.AbsoluteFsPath {
     // The `ts_project` rules passes options like `--project` relative to the bazel-bin,
     // so we will mimic the execution running with this as working directory.
-    return this._virtualCwd as ngtsc.AbsoluteFsPath;
+    return this._virtualCwd;
   }
 
   readdir(path: ngtsc.AbsoluteFsPath): ngtsc.PathSegment[] {
@@ -120,14 +123,19 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
   }
 
   private toDiskPath(filePath: string): string {
-    return path.join(execrootDiskPath, this.resolve(filePath));
+    return nativeSysPath.resolve(execrootDiskPath, this.resolve(filePath));
   }
 
   private fromDiskPath(diskPath: string): AbsoluteFsPath {
-    const relative = path.relative(execrootDiskPath, diskPath);
-    if (relative.startsWith('..')) {
+    const relativeSysPath = nativeSysPath.relative(execrootDiskPath, diskPath);
+    const relativeNormalized = this.normalizePathFragmentToPosix(relativeSysPath);
+    if (relativeNormalized.startsWith('..')) {
       throw new Error(`Unexpected disk path that cannot be part of execroot: ${diskPath}`);
     }
-    return `/${relative}` as AbsoluteFsPath;
+    return `/${relativeNormalized}` as AbsoluteFsPath;
+  }
+
+  private normalizePathFragmentToPosix(p: string): string {
+    return p.replace(/\\/g, '/');
   }
 }
