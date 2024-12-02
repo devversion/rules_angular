@@ -123,7 +123,8 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
   }
 
   private toDiskPath(filePath: string): string {
-    return nativeSysPath.resolve(execrootDiskPath, this.resolve(filePath));
+    // Resolve at the end to a system-separated path.
+    return nativeSysPath.resolve(nativeSysPath.join(execrootDiskPath, this.resolve(filePath)));
   }
 
   private fromDiskPath(diskPath: string): AbsoluteFsPath {
