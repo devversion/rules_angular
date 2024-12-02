@@ -19,7 +19,7 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
   // `js_binary` always runs with working directory in `bazel-out/<..>/bin`.
   private _diskCwdSysPath = process.cwd();
   private _virtualCwd: AbsoluteFsPath = this.normalizePathFragmentToPosix(
-    `/${path.relative(execrootDiskPath, this._diskCwdSysPath)}`,
+    `/${nativeSysPath.relative(execrootDiskPath, this._diskCwdSysPath)}`,
   ) as AbsoluteFsPath;
 
   constructor(inputs: AbsoluteFsPath[]) {
