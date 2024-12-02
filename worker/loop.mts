@@ -43,6 +43,8 @@ export async function executeBuild(
     );
   }
 
+  console.error(args);
+
   const command = ts.parseCommandLine(args);
 
   // In worker mode, use a sandbox-emulating virtual file system, while in

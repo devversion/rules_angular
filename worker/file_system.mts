@@ -1,6 +1,6 @@
 import {Volume} from 'memfs';
 import fs from 'fs';
-import path from 'path';
+import path from 'path/posix';
 import * as ngtsc from '@angular/compiler-cli';
 import {AbsoluteFsPath} from '@angular/compiler-cli';
 import {BazelSafeFilesystem} from './bazel_safe_filesystem.mjs';
