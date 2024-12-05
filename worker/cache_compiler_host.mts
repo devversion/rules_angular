@@ -63,7 +63,14 @@ export function createCacheCompilerHost(
     // part of action inputs therefore not part of the virtual FS/host.
     if (isLibFile) {
       const req = module.createRequire(import.meta.url);
-      console.error('Default lib paths', fileName, defaultLibLocation, req.resolve('typescript'));
+      console.error(
+        'Default lib paths',
+        modifiedResourceFilePaths == null ? 'null' : Array.from(modifiedResourceFilePaths.entries()),
+        fileName.startsWith(defaultLibLocation),
+        fileName,
+        defaultLibLocation,
+        req.resolve('typescript')
+      );
       createdFile = ts.createSourceFile(
         fileName,
         nodeFs.readFileSync(fileName, 'utf8'),

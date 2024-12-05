@@ -18,6 +18,9 @@ importers:
       '@angular/core':
         specifier: ^19.0.1
         version: 19.0.1(rxjs@7.8.1)(zone.js@0.15.0)
+      '@bazel/bazelisk':
+        specifier: 1.24.1
+        version: 1.24.1
       '@bazel/buildifier':
         specifier: ^7.3.1
         version: 7.3.1
@@ -135,6 +138,10 @@ packages:
   '@babel/types@7.26.0':
     resolution: {integrity: sha512-Z/yiTPj+lDVnF7lWeKCIJzaIkI0vYO87dMpZ4bg4TDrFe4XXLFWL1TbXU27gBP3QccxV9mZICCrnjnYlJjXHOA==}
     engines: {node: '>=6.9.0'}
+
+  '@bazel/bazelisk@1.24.1':
+    resolution: {integrity: sha512-1lJPcMtTVgEVR6E7CUNM5vaM2nr0fbRMYNy4RYXZsNZce7BhFCoiXPgFsVZFXNO00xNp5b0cpZTtqmUYdQlfWQ==}
+    hasBin: true
 
   '@bazel/buildifier@7.3.1':
     resolution: {integrity: sha512-qhSjryLo2uHeib/uLc8Yeh6SBisqdf9pPO79QPlyNO3Apc4g9J1Tir/52VdOo9czHTgSasbtOjfWJCPzMoCSIA==}
@@ -735,6 +742,8 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.25.9
       '@babel/helper-validator-identifier': 7.25.9
+
+  '@bazel/bazelisk@1.24.1': {}
 
   '@bazel/buildifier@7.3.1': {}
 
