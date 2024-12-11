@@ -2,6 +2,9 @@ import ts from 'typescript';
 import {FileCache} from './file_cache/file_cache.mjs';
 import * as ngtsc from '@angular/compiler-cli';
 import * as nodeFs from 'node:fs';
+import module from 'module';
+import path from 'node:path';
+
 
 export function createCacheCompilerHost(
   options: ts.CompilerOptions,
@@ -61,9 +64,23 @@ export function createCacheCompilerHost(
     // Lib files need to be resolved from real disk as they aren't
     // part of action inputs therefore not part of the virtual FS/host.
     if (isLibFile) {
+      let filePath = path.relative(defaultLibLocation, fileName);
+      // If the file does not exist at the expected path, we assume it needs to be found using require.resolve
+      // to load it from the typescript lib folder.
+      if (!nodeFs.existsSync(filePath)) {
+        try {
+          // TODO: Handle this in a more general way than assuming any requested file that isn't found must be
+          // from typescript/lib
+          const req = module.createRequire(import.meta.url);
+          filePath = req.resolve(`typescript/lib/${path.basename(fileName)}`);
+        } catch {
+          throw Error(`Cannot find ${fileName} directly or within typescript/lib`);
+        }
+      }
+
       createdFile = ts.createSourceFile(
         fileName,
-        nodeFs.readFileSync(fileName, 'utf8'),
+        nodeFs.readFileSync(filePath, 'utf8'),
         languageVersionOrOptions,
         false,
       );

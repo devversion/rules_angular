@@ -44,6 +44,7 @@ export async function executeBuild(
   }
 
   console.error(args);
+  console.error('Worker mode:', inputs !== null);
 
   const command = ts.parseCommandLine(args);
 
