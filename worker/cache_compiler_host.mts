@@ -3,6 +3,7 @@ import {FileCache} from './file_cache/file_cache.mjs';
 import * as ngtsc from '@angular/compiler-cli';
 import * as nodeFs from 'node:fs';
 import module from 'module';
+import path from 'node:path';
 
 export function createCacheCompilerHost(
   options: ts.CompilerOptions,
@@ -63,10 +64,10 @@ export function createCacheCompilerHost(
     // part of action inputs therefore not part of the virtual FS/host.
     if (isLibFile) {
       const req = module.createRequire(import.meta.url);
-      console.error('Default lib paths', fileName, defaultLibLocation, req.resolve('typescript'));
+
       createdFile = ts.createSourceFile(
         fileName,
-        nodeFs.readFileSync(fileName, 'utf8'),
+        nodeFs.readFileSync(req.resolve(path.relative(defaultLibLocation, fileName)), 'utf8'),
         languageVersionOrOptions,
         false,
       );
