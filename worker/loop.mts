@@ -43,10 +43,9 @@ export async function executeBuild(
     );
   }
 
-  console.error(args);
-  console.error('Worker mode:', inputs !== null);
+  const command = ts.parseCommandLine(args.concat('--source-map=true'));
 
-  const command = ts.parseCommandLine(args);
+  console.error(!!command.options.sourceMap, args.join(' '));
 
   // In worker mode, use a sandbox-emulating virtual file system, while in
   // RBE/standalone execution we simply use the native file system.
