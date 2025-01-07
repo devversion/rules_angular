@@ -43,9 +43,7 @@ export async function executeBuild(
     );
   }
 
-  const command = ts.parseCommandLine(args.concat('--source-map=true'));
-
-  console.error(!!command.options.sourceMap, args.join(' '));
+  const command = ts.parseCommandLine(args);
 
   // In worker mode, use a sandbox-emulating virtual file system, while in
   // RBE/standalone execution we simply use the native file system.
