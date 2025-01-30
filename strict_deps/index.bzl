@@ -8,10 +8,18 @@ def _strict_deps_impl(ctx):
     allowed_module_names = []
     test_files = []
 
+    # Whether or not the strict_deps check is expected to fail.
+    expect_failure = "true" if ctx.attr._will_fail else "false"
+
     for dep in ctx.attr.deps:
         if not JsInfo in dep:
             continue
-        package_infos.append(dep[JsInfo].npm_package_store_infos)
+
+        # Dependencies directly on a node module will not include sources, allowing us to use this as a marker for whether or not
+        # we can include the npm package information from this dependency.
+        if not len(dep[JsInfo].sources.to_list()):
+            package_infos.append(dep[JsInfo].npm_package_store_infos)
+        
         sources.append(dep[JsInfo].sources)
 
     # Iterate through Npm package infos and pull the package names.
@@ -58,10 +66,11 @@ def _strict_deps_impl(ctx):
             { echo>&2 "ERROR: cannot find $f"; exit 1; }; f=; set -e
             # --- end runfiles.bash initialization v3 ---
 
-            exec $(rlocation %s) $(rlocation %s)
+            exec $(rlocation %s) $(rlocation %s) %s
         """ % (
             "%s/%s" % (ctx.workspace_name, ctx.files._bin[0].short_path),
             "%s/%s" % (ctx.workspace_name, manifest.short_path),
+            expect_failure
         ),
     )
 
@@ -76,7 +85,7 @@ def _strict_deps_impl(ctx):
         ),
     ]
 
-strict_deps_test = rule(
+_strict_deps_test = rule(
     implementation = _strict_deps_impl,
     test = True,
     doc = "Rule to verify that specified TS files only import from explicitly listed deps.",
@@ -90,6 +99,10 @@ strict_deps_test = rule(
             allow_files = True,
             mandatory = True,
         ),
+        "_will_fail": attr.bool(
+            doc = "Whether the test is expected to fail",
+            default = False,
+        ),
         "_runfiles_lib": attr.label(
             default = "@bazel_tools//tools/bash/runfiles",
         ),
@@ -100,3 +113,12 @@ strict_deps_test = rule(
         ),
     },
 )
+
+
+def strict_deps_test(**kwargs):
+    kwargs['$will_fail'] = False
+    _strict_deps_test(**kwargs)
+
+def invalid_strict_deps_test(**kwargs):
+    kwargs['$will_fail'] = True
+    _strict_deps_test(**kwargs)
