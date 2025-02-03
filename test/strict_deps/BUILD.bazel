@@ -1,0 +1,45 @@
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("//strict_deps:index.bzl", "strict_deps_test", "invalid_strict_deps_test")
+
+
+ts_project(
+    name = "sibling_import_from_depth",
+    srcs = ["sibling_import_from_depth.ts"],
+    deps = [
+        "//test/strict_deps/depth",
+    ]
+)
+
+strict_deps_test(
+    name = "import_npm_module",
+    srcs = ["import_npm_module.ts"],
+    deps = ["//:node_modules/@angular/core"],
+)
+
+invalid_strict_deps_test(
+    name = "invalid_import_npm_module_transitively",
+    srcs = ["import_npm_module.ts"],
+    deps = [
+        "//test/strict_deps/import_npm_module",
+    ],
+)
+
+invalid_strict_deps_test(
+    name = "invalid_import_npm_module",
+    srcs = ["import_npm_module.ts"],
+)
+
+strict_deps_test(
+    name = "import_from_depth",
+    srcs = ["import_from_depth.ts"],
+    deps = ["//test/strict_deps/depth",],
+)
+
+invalid_strict_deps_test(
+    name = "invalid_import_from_depth",
+    srcs = ["import_from_depth.ts"],
+    deps = [
+        ":sibling_import_from_depth",
+    ]
+)
+

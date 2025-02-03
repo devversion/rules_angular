@@ -5,7 +5,9 @@ import {getImportsInSourceFile} from './visitor.mjs';
 import {createDiagnostic} from './diagnostic.mjs';
 import path from 'path';
 
-const [manifestExecPath] = process.argv.slice(2);
+const [manifestExecPath, expectedFailureRaw] = process.argv.slice(2);
+const expectedFailure = expectedFailureRaw === 'true';
+
 const manifest: StrictDepsManifest = JSON.parse(await fs.readFile(manifestExecPath, 'utf8'));
 
 const extensionRemoveRegex = /\.[mc]?(js|ts)$/;
@@ -51,5 +53,11 @@ if (diagnostics.length > 0) {
     getNewLine: () => '\n',
   });
   console.error(formattedDiagnostics);
-  process.exitCode = 1;
+  process.exitCode = 1
+}
+
+if (expectedFailure && process.exitCode !== 0) {
+  console.log('Strict deps testing was marked as expected to fail, marking test as passing.');
+  // Force the exit code back to 0 as the process was expected to fail.
+  process.exitCode = 0;
 }
