@@ -9,7 +9,7 @@ def _strict_deps_impl(ctx):
     test_files = []
 
     # Whether or not the strict_deps check is expected to fail.
-    expect_failure = "true" if ctx.attr._will_fail else "false"
+    expect_failure = "true" if ctx.attr.will_fail else "false"
 
     for dep in ctx.attr.deps:
         if not JsInfo in dep:
@@ -99,7 +99,7 @@ _strict_deps_test = rule(
             allow_files = True,
             mandatory = True,
         ),
-        "_will_fail": attr.bool(
+        "will_fail": attr.bool(
             doc = "Whether the test is expected to fail",
             default = False,
         ),
@@ -114,11 +114,10 @@ _strict_deps_test = rule(
     },
 )
 
-
 def strict_deps_test(**kwargs):
-    kwargs['$will_fail'] = False
+    kwargs['will_fail'] = False
     _strict_deps_test(**kwargs)
 
 def invalid_strict_deps_test(**kwargs):
-    kwargs['$will_fail'] = True
+    kwargs['will_fail'] = True
     _strict_deps_test(**kwargs)
