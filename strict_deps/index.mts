@@ -25,7 +25,11 @@ for (const fileExecPath of manifest.testFiles) {
 
   for (const i of imports) {
     if (!i.moduleSpecifier.startsWith('.')) {
-      if (!allowedModuleNames.has(i.moduleSpecifier)) {
+      if (
+        // Whether the exact module specifier is allowed.
+        !allowedModuleNames.has(i.moduleSpecifier) &&
+        // Whether the module specificer is a node provided module and node types are provided.
+        !(i.moduleSpecifier.startsWith('node:') && allowedModuleNames.has('@types/node'))) {
         diagnostics.push(
           createDiagnostic(`No explicit Bazel dependency for this module.`, i.diagnosticNode),
         );

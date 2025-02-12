@@ -11,6 +11,19 @@ ts_project(
 )
 
 strict_deps_test(
+    name = "import_node_module",
+    srcs = ["import_node_module.ts"],
+    deps = [
+        "//:node_modules/@types/node",
+    ],
+)
+
+invalid_strict_deps_test(
+    name = "invalid_import_node_module",
+    srcs = ["import_node_module.ts"],
+)
+
+strict_deps_test(
     name = "import_npm_module",
     srcs = ["import_npm_module.ts"],
     deps = ["//:node_modules/@angular/core"],
