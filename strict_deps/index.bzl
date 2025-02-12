@@ -1,7 +1,21 @@
 load("@aspect_rules_js//js:providers.bzl", "JsInfo")
 
+# A custom provider to pass along the npm package name for linked npm packages
+NpmPackage = provider()
+
+def _npm_package_aspect_impl(target, ctx):
+    if (ctx.rule.kind == 'npm_link_package_store'):
+        return [NpmPackage(name=ctx.rule.attr.package)]
+    return []
+
+
+# Aspect to include the npm package name for use in strict deps checking.
+_npm_package_aspect = aspect(
+    implementation = _npm_package_aspect_impl,
+    required_providers = [],
+)
+
 def _strict_deps_impl(ctx):
-    package_infos = []
     sources = []
 
     allowed_sources = []
@@ -12,20 +26,10 @@ def _strict_deps_impl(ctx):
     expect_failure = "true" if ctx.attr.will_fail else "false"
 
     for dep in ctx.attr.deps:
-        if not JsInfo in dep:
-            continue
-
-        # Dependencies directly on a node module will not include sources, allowing us to use this as a marker for whether or not
-        # we can include the npm package information from this dependency.
-        if not len(dep[JsInfo].sources.to_list()):
-            package_infos.append(dep[JsInfo].npm_package_store_infos)
-        
-        sources.append(dep[JsInfo].sources)
-
-    # Iterate through Npm package infos and pull the package names.
-    # https://github.com/aspect-build/rules_js/blob/c980ee9b31dd3b27ea6cac5801a8c22a91833400/npm/private/npm_package_store_info.bzl#L3.
-    for info in depset(transitive = package_infos).to_list():
-        allowed_module_names.append(info.package)
+        if JsInfo in dep:
+            sources.append(dep[JsInfo].sources)
+        if NpmPackage in dep:
+            allowed_module_names.append(dep[NpmPackage].name)
 
     for source in depset(transitive = sources).to_list():
         allowed_sources.append(source.short_path)
@@ -91,6 +95,7 @@ _strict_deps_test = rule(
     doc = "Rule to verify that specified TS files only import from explicitly listed deps.",
     attrs = {
         "deps": attr.label_list(
+            aspects = [_npm_package_aspect],
             doc = "Direct dependencies that are allowed",
             default = [],
         ),
