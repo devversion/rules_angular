@@ -1,15 +1,19 @@
-import {StrictDepsManifest} from './manifest.mjs';
-import fs from 'fs/promises';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import ts from 'typescript';
-import {getImportsInSourceFile} from './visitor.mjs';
 import {createDiagnostic} from './diagnostic.mjs';
-import path from 'path';
+import {StrictDepsManifest} from './manifest.mjs';
+import {getImportsInSourceFile} from './visitor.mjs';
 
 const [manifestExecPath, expectedFailureRaw] = process.argv.slice(2);
 const expectedFailure = expectedFailureRaw === 'true';
 
 const manifest: StrictDepsManifest = JSON.parse(await fs.readFile(manifestExecPath, 'utf8'));
 
+/**
+ * Regex matcher to extract a npm package name, potentially with scope from a subpackage import path.
+ */
+const moduleSpeciferMatcher = /^(@[\w\d-_]+\/)?([\w\d-_]+)/;
 const extensionRemoveRegex = /\.[mc]?(js|ts)$/;
 const allowedModuleNames = new Set<string>(manifest.allowedModuleNames);
 const allowedSources = new Set<string>(
@@ -24,29 +28,32 @@ for (const fileExecPath of manifest.testFiles) {
   const imports = getImportsInSourceFile(sf);
 
   for (const i of imports) {
-    if (!i.moduleSpecifier.startsWith('.')) {
-      if (
-        // Whether the exact module specifier is allowed.
-        !allowedModuleNames.has(i.moduleSpecifier) &&
-        // Whether the module specificer is a node provided module and node types are provided.
-        !(i.moduleSpecifier.startsWith('node:') && allowedModuleNames.has('@types/node'))) {
-        diagnostics.push(
-          createDiagnostic(`No explicit Bazel dependency for this module.`, i.diagnosticNode),
-        );
+    const moduleSpecifier = i.moduleSpecifier.replace(extensionRemoveRegex, '');
+    // When the module specified is the file itself this is always a valid dep.
+    if (i.moduleSpecifier === '') {
+      continue;
+    }
+    if (moduleSpecifier.startsWith('.')) {
+      const targetFilePath = path.posix.join(path.dirname(i.diagnosticNode.getSourceFile().fileName), moduleSpecifier);
+
+      if (allowedSources.has(targetFilePath) || allowedSources.has(`${targetFilePath}/index`)) {
+        continue;
       }
+
+      console.log(`couldn't find at:\n  ${targetFilePath}/index\n  ${targetFilePath}`)
+    }
+
+    if (moduleSpecifier.startsWith('node:') && allowedModuleNames.has('@types/node')) {
       continue;
     }
 
-    const targetFilePath = path.posix.join(
-      path.dirname(i.diagnosticNode.getSourceFile().fileName),
-      i.moduleSpecifier,
-    );
-
-    if (!allowedSources.has(targetFilePath)) {
-      diagnostics.push(
-        createDiagnostic(`No explicit Bazel dependency for this module.`, i.diagnosticNode),
-      );
+    if (allowedModuleNames.has(moduleSpecifier.match(moduleSpeciferMatcher)?.[0] || moduleSpecifier)) {
+      continue;
     }
+  
+    diagnostics.push(
+      createDiagnostic(`No explicit Bazel dependency for this module.`, i.diagnosticNode),
+    );
   }
 }
 
