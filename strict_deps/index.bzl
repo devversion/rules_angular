@@ -5,7 +5,11 @@ NpmPackage = provider()
 
 def _npm_package_aspect_impl(target, ctx):
     if (ctx.rule.kind == 'npm_link_package_store'):
-        return [NpmPackage(name=ctx.rule.attr.package)]
+        package_name = ctx.rule.attr.package
+        # TODO: Determine how to include the package field information in locally built npm package targets
+        if package_name == '':
+            package_name = target[JsInfo].npm_package_store_infos.to_list()[0].package
+        return [NpmPackage(name=package_name)]
     return []
 
 
