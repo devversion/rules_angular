@@ -10,10 +10,15 @@ export function getImportsInSourceFile(sf: ts.SourceFile): Import[] {
 
   const visitor = (node: ts.Node) => {
     if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
-      result.push({
-        diagnosticNode: node.moduleSpecifier!,
-        moduleSpecifier: (node.moduleSpecifier as ts.StringLiteral).text,
-      });
+      const moduleSpecifier = node.moduleSpecifier as ts.StringLiteral;
+      // If not moduleSpecifier is included in the declaration, it is infered to be the local file,
+      // essentially a self import and can be ignored.
+      if (moduleSpecifier) {
+        result.push({
+          diagnosticNode: moduleSpecifier,
+          moduleSpecifier: moduleSpecifier.text
+        });
+      }
     }
     if (
       ts.isCallExpression(node) &&

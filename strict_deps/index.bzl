@@ -35,8 +35,9 @@ def _strict_deps_impl(ctx):
         allowed_sources.append(source.short_path)
 
     for file in ctx.files.srcs:
-        allowed_sources.append(file.path)
-        test_files.append(file.path)
+        allowed_sources.append(file.short_path)
+        if file.is_source:
+            test_files.append(file.short_path)
 
     manifest = ctx.actions.declare_file("%s_strict_deps_manifest.json" % ctx.attr.name)
     ctx.actions.write(
@@ -112,7 +113,7 @@ _strict_deps_test = rule(
             default = "@bazel_tools//tools/bash/runfiles",
         ),
         "_bin": attr.label(
-            default = "//strict_deps:bin",
+            default = "//tools/strict_deps:bin",
             executable = True,
             cfg = "exec",
         ),
