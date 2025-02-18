@@ -31,7 +31,9 @@ def _strict_deps_impl(ctx):
 
     for dep in ctx.attr.deps:
         if JsInfo in dep:
-            sources.append(dep[JsInfo].sources)
+            # Because each source maps to a corresponding type file, we can simply look at the type
+            # files for the sources, this also allows for situations in which we only provide types.
+            sources.append(dep[JsInfo].types)
         if NpmPackage in dep:
             allowed_module_names.append(dep[NpmPackage].name)
 
