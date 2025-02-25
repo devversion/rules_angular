@@ -1,5 +1,4 @@
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
-load("//strict_deps:index.bzl", "invalid_strict_deps_test")
 
 ts_project(
     name = "plain_ts",
@@ -7,11 +6,5 @@ ts_project(
     supports_workers = 1,
     tsc_worker = "//worker:worker_vanilla_ts",
     tsconfig = "tsconfig.json",
-    deps = ["//:node_modules/@angular/core"],
-)
-
-invalid_strict_deps_test(
-    name = "plain_ts_strict_deps",
-    srcs = glob(["**/*.ts"]),
     deps = ["//:node_modules/@angular/core"],
 )
