@@ -24,13 +24,6 @@ export async function executeBuild(
     programCache: ProgramCache;
   } | null,
 ) {
-  const project = args[args.indexOf('--project') + 1];
-  const outDir = args[args.lastIndexOf('--outDir') + 1];
-  const declarationDir = args[args.lastIndexOf('--declarationDir') + 1];
-  const rootDir = args[args.lastIndexOf('--rootDir') + 1];
-  const workerKey = `${project} @ ${outDir} @ ${declarationDir} @ ${rootDir}`;
-  const existing = worker?.programCache.get(workerKey);
-
   let inputs: Map<ngtsc.AbsoluteFsPath, Uint8Array> | null = null;
 
   // In worker mode, we know the inputs and can compute them. This allows
@@ -43,8 +36,6 @@ export async function executeBuild(
     );
   }
 
-  const command = ts.parseCommandLine(args);
-
   // In worker mode, use a sandbox-emulating virtual file system, while in
   // RBE/standalone execution we simply use the native file system.
   const fs =
@@ -55,6 +46,21 @@ export async function executeBuild(
   // Note: This is needed because functions like `readConfiguration` do not properly
   // re-use the passed `fs`, but call `getFileSystem`.
   ngtsc.setFileSystem(fs);
+
+  // Populate options from command line arguments.
+  const {options: cmdOptions} = ts.parseCommandLine(args);
+  const parsedConfig = ngtsc.readConfiguration(cmdOptions.project!, cmdOptions, fs);
+  const options = parsedConfig.options;
+  
+  // Build a worker key by concatenating a set of key values delimitted by an `@` character.
+  const workerKey = [
+    cmdOptions.project,
+    cmdOptions.outDir,
+    cmdOptions.declarationDir,
+    cmdOptions.rootDir,
+  ].join(' @ ');
+  
+  const existing = worker?.programCache.get(workerKey);
 
   const modifiedResourceFilePaths =
     existing !== undefined && inputs !== null
@@ -67,9 +73,6 @@ export async function executeBuild(
     worker.fileCache.updateCache(inputs);
   }
 
-  // Populate options from command line arguments.
-  const parsedConfig = ngtsc.readConfiguration(command.options.project!, command.options, fs);
-  const options = parsedConfig.options;
 
   // Invalidate the system to ensure we always use the virtual FS/host.
   // Object.defineProperty(ts, 'sys', {value: undefined, configurable: true});
