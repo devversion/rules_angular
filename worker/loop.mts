@@ -58,6 +58,7 @@ export async function executeBuild(
     cmdOptions.outDir,
     cmdOptions.declarationDir,
     cmdOptions.rootDir,
+    options.compilationMode,
   ].join(' @ ');
   
   const existing = worker?.programCache.get(workerKey);
