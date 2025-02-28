@@ -30,3 +30,6 @@ build:remote --remote_instance_name=projects/internal-200822/instances/primary_i
 build:remote --bes_instance_name=internal-200822
 build:remote --remote_cache=remotebuildexecution.googleapis.com
 build:remote --remote_executor=remotebuildexecution.googleapis.com
+
+# Flag for validation/demonstration of partial compilation usage.
+build --flag_alias=partial_compilation=//ng_project/config:partial_compilation
