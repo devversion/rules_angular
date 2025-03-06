@@ -1,0 +1,31 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+load("@aspect_bazel_lib//lib:directory_path.bzl", "directory_path")
+
+package(default_visibility = ["//visibility:public"])
+
+
+directory_path(
+        name = "rollup_entry_point",
+        directory = "//:node_modules/rollup/dir",
+        path = "dist/bin/rollup",
+    )
+
+js_binary(
+    name = "rollup",
+    data = [
+        "//:node_modules/@rollup/plugin-commonjs",
+        "//:node_modules/@rollup/plugin-node-resolve",
+        "//:node_modules/magic-string",
+        "//:node_modules/rollup",
+        "//:node_modules/rollup-plugin-sourcemaps",
+        "//:node_modules/typescript",
+    ],
+    entry_point = ":rollup_entry_point",
+)
+
+filegroup(
+    name = "rollup_config_template",
+    srcs = [
+        "rollup.config.js",
+    ]
+)
