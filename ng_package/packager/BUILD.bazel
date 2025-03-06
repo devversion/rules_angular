@@ -1,0 +1,28 @@
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project", "ts_config")
+
+ts_config(
+  name = "tsconfig",
+  src = "tsconfig.json",
+)
+
+ts_project(
+    name = "packager_lib",
+    srcs = [
+      "api.ts",
+      "cross-entry-point-imports.ts",
+      "index.ts",
+    ],
+    tsconfig = ":tsconfig",
+    deps = [
+        "//:node_modules/@types/node",
+        "//:node_modules/typescript",
+        "//:node_modules/fast-glob",
+    ],
+)
+
+js_binary(
+    name = "packager",
+    data = [":packager_lib"],
+    entry_point = ":index.js",
+)
