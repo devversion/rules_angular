@@ -11,3 +11,13 @@ partial_compilation_flag = rule(
     # are supported. 
     build_setting = config.bool(flag = True),
 )
+
+
+def _partial_compilation_transition_impl(_settings, _attr):
+    return {"//ng_project/config:partial_compilation": True}
+
+partial_compilation_transition = transition(
+    implementation = _partial_compilation_transition_impl,
+    inputs = [],
+    outputs = ["//ng_project/config:partial_compilation"],
+)
