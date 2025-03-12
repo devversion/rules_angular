@@ -42,6 +42,9 @@ importers:
       rollup:
         specifier: ^4.27.4
         version: 4.27.4
+      rollup-plugin-dts:
+        specifier: 6.1.1
+        version: 6.1.1(rollup@4.27.4)(typescript@5.6.3)
       rollup-plugin-sourcemaps:
         specifier: 0.6.3
         version: 0.6.3(@types/node@22.10.1)(rollup@4.27.4)
@@ -544,6 +547,13 @@ packages:
   resolve@1.22.8:
     resolution: {integrity: sha512-oKWePCxqpd6FlLvGV1VU0x7bkPmmCNolxzjMf4NczoDnQcIWrAF+cPtZn5i6n+RfD2d9i0tzpKnG6Yk168yIyw==}
     hasBin: true
+
+  rollup-plugin-dts@6.1.1:
+    resolution: {integrity: sha512-aSHRcJ6KG2IHIioYlvAOcEq6U99sVtqDDKVhnwt70rW6tsz3tv5OSjEiWcgzfsHdLyGXZ/3b/7b/+Za3Y6r1XA==}
+    engines: {node: '>=16'}
+    peerDependencies:
+      rollup: ^3.29.4 || ^4
+      typescript: ^4.5 || ^5.0
 
   rollup-plugin-sourcemaps@0.6.3:
     resolution: {integrity: sha512-paFu+nT1xvuO1tPFYXGe+XnQvg4Hjqv/eIhG8i5EspfYYPBKL57X7iVbfv55aNVASg3dzWvES9dmWsL2KhfByw==}
@@ -1095,6 +1105,14 @@ snapshots:
       is-core-module: 2.15.1
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
+
+  rollup-plugin-dts@6.1.1(rollup@4.27.4)(typescript@5.6.3):
+    dependencies:
+      magic-string: 0.30.17
+      rollup: 4.27.4
+      typescript: 5.6.3
+    optionalDependencies:
+      '@babel/code-frame': 7.26.2
 
   rollup-plugin-sourcemaps@0.6.3(@types/node@22.10.1)(rollup@4.27.4):
     dependencies:
