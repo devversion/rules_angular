@@ -11,21 +11,11 @@ directory_path(
     )
 
 js_binary(
-    name = "rollup",
+    name = "bin",
     data = [
-        "//:node_modules/@rollup/plugin-commonjs",
-        "//:node_modules/@rollup/plugin-node-resolve",
-        "//:node_modules/magic-string",
         "//:node_modules/rollup",
-        "//:node_modules/rollup-plugin-sourcemaps",
-        "//:node_modules/typescript",
     ],
     entry_point = ":rollup_entry_point",
 )
 
-filegroup(
-    name = "rollup_config_template",
-    srcs = [
-        "rollup.config.js",
-    ]
-)
+exports_files(["rollup.config.js"])
