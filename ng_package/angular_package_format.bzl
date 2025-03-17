@@ -107,7 +107,7 @@ def _run_rollup(ctx, rollup_config, inputs, dts_mode):
     # bazel rule prints nothing on success.
     args.add("--silent")
 
-    other_inputs = [rollup_config] + ctx.files._rollup_runtime_deps
+    other_inputs = [rollup_config]
     if ctx.file.license_banner:
         other_inputs.append(ctx.file.license_banner)
     ctx.actions.run(
@@ -116,7 +116,7 @@ def _run_rollup(ctx, rollup_config, inputs, dts_mode):
         inputs = depset(other_inputs, transitive = [inputs]),
         outputs = [outdir],
         executable = ctx.executable.rollup,
-        tools = [ctx.executable.rollup],
+        tools = depset(ctx.files._rollup_runtime_deps),
         arguments = [args],
         env = {
             "BAZEL_BINDIR": ".",
@@ -290,7 +290,6 @@ def _angular_package_format_impl(ctx):
 
             # module_name = es2022_entry_point
             module_name = es2022_entry_point.short_path[len(owning_package) + 1:][:-(len("index.js")+1)]
-            print('module_name?', module_name, es2022_entry_point)
 
         bundle_name_base = primary_bundle_name if is_primary_entry_point else entry_point
         dts_bundle_name_base = "index" if is_primary_entry_point else "%s/index" % entry_point
@@ -334,7 +333,6 @@ def _angular_package_format_impl(ctx):
     # Marshal the metadata into a JSON string so we can parse the data structure
     # in the TypeScript program easily.
     metadata_arg = {}
-    print("collected_entry_points", collected_entry_points)
     for m in collected_entry_points:
         # The captured properties need to match the `EntryPointInfo` interface
         # in the packager executable tool.
@@ -482,6 +480,6 @@ angular_package_format = rule(
     "_allowlist_function_transition": attr.label(
         default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
     ),
-  }
+  },
 )
 

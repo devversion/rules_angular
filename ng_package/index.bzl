@@ -8,6 +8,7 @@ def ng_package(name, **kwargs):
   angular_package_format(
     name = "%s_apf" % name,
     srcs = kwargs.pop("srcs", []),
+    externals = kwargs.pop("externals", []),
   )
 
   _npm_package(
