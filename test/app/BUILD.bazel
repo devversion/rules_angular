@@ -5,6 +5,7 @@ ts_project(
     name = "app",
     srcs = glob(["**/*.ts"]) + ["template.html"],
     supports_workers = 1,
+    declaration = True,
     tsc_worker = "//worker:worker_angular",
     tsconfig = "tsconfig.json",
     deps = ["//:node_modules/@angular/core"],
