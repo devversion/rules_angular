@@ -8,16 +8,15 @@ def _partial_compilation_flag_impl(ctx):
 partial_compilation_flag = rule(
     implementation = _partial_compilation_flag_impl,
     # TODO: Determine if this should be a string config so that all possible compilation modes
-    # are supported. 
+    # are supported.
     build_setting = config.bool(flag = True),
 )
 
-
 def _partial_compilation_transition_impl(_settings, _attr):
-    return {"//ng_project/config:partial_compilation": True}
+    return {"@rules_angular//src/ng_project/config:partial_compilation": True}
 
 partial_compilation_transition = transition(
     implementation = _partial_compilation_transition_impl,
     inputs = [],
-    outputs = ["//ng_project/config:partial_compilation"],
+    outputs = ["@rules_angular//src/ng_project/config:partial_compilation"],
 )

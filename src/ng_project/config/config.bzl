@@ -44,7 +44,7 @@ ng_project_config = rule(
     implementation = _ng_project_config_impl,
     attrs = {
         "_partial_compilation_flag": attr.label(
-            default = "//ng_project/config:partial_compilation",
+            default = "@rules_angular//src/ng_project/config:partial_compilation",
             providers = [NgCompilationMode],
             doc = "Internal attribute which points to the partial compilation build setting.",
         ),

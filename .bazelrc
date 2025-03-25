@@ -32,4 +32,4 @@ build:remote --remote_cache=remotebuildexecution.googleapis.com
 build:remote --remote_executor=remotebuildexecution.googleapis.com
 
 # Flag for validation/demonstration of partial compilation usage.
-build --flag_alias=partial_compilation=//ng_project/config:partial_compilation
+build --flag_alias=partial_compilation=//src/ng_project/config:partial_compilation
