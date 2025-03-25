@@ -1,5 +1,6 @@
 import * as ngtsc from '@angular/compiler-cli';
 import assert from 'assert';
+import crypto from 'crypto';
 import stringify from 'json-stable-stringify';
 import ts from 'typescript';
 import {createCancellationToken} from './cancellation_token.mjs';
@@ -34,23 +35,26 @@ export async function executeBuild(
     programCache: ProgramCache;
   } | null,
 ) {
-  let inputs: Map<ngtsc.AbsoluteFsPath, Uint8Array> | null = null;
+  let workerInputs: Map<ngtsc.AbsoluteFsPath, Uint8Array> | null = null;
 
   // In worker mode, we know the inputs and can compute them. This allows
   // us to construct a virtual file system to emulate sandboxing.
   if (worker !== null) {
-    inputs = new Map(
+    workerInputs = new Map(
       worker.req.inputs
         // Worker input paths are rooted in our virtual FS at execroot.
         .map(i => [`/${i.path}` as ngtsc.AbsoluteFsPath, i.digest]),
     );
   }
 
+  const workerSortedInputFileNames =
+    workerInputs !== null ? Array.from(workerInputs.keys()).sort() : null;
+
   // In worker mode, use a sandbox-emulating virtual file system, while in
   // RBE/standalone execution we simply use the native file system.
   const fs =
-    inputs !== null
-      ? new WorkerSandboxFileSystem(Array.from(inputs.keys()))
+    workerSortedInputFileNames !== null
+      ? new WorkerSandboxFileSystem(workerSortedInputFileNames)
       : new ngtsc.NodeJSFileSystem();
 
   // Note: This is needed because functions like `readConfiguration` do not properly
@@ -63,18 +67,24 @@ export async function executeBuild(
   const options = parsedConfig.options;
 
   // Build a worker hash by concatenating a set of key values delimited by an `@` character.
-  const compilationReuseHash = getReuseHashForProgramOptions(options);
-  const existing = worker?.programCache.get(compilationReuseHash);
+  const compilationReuseHash =
+    workerSortedInputFileNames !== null
+      ? getReuseHashForProject(options, workerSortedInputFileNames)
+      : null;
+  const existing =
+    worker !== null && compilationReuseHash !== null
+      ? worker.programCache.get(compilationReuseHash)
+      : undefined;
 
   const modifiedResourceFilePaths =
-    existing !== undefined && inputs !== null
-      ? diffWorkerInputsForModifiedResources(inputs, existing.lastInputs)
+    existing !== undefined && workerInputs !== null
+      ? diffWorkerInputsForModifiedResources(workerInputs, existing.lastInputs)
       : null;
 
   // Update cache, if present, evicting changed files and their AST.
   if (worker !== null) {
-    assert(inputs, 'Expected inputs when using persistent file cache.');
-    worker.fileCache.updateCache(inputs);
+    assert(workerInputs, 'Expected inputs when using persistent file cache.');
+    worker.fileCache.updateCache(workerInputs);
   }
 
   // Invalidate the system to ensure we always use the virtual FS/host.
@@ -105,12 +115,16 @@ export async function executeBuild(
   const programDescriptor = isVanillaTsCompilation ? VanillaTsProgram : AngularProgram;
   const program = new programDescriptor(parsedConfig.rootNames, options, host, existing?.program);
 
-  if (inputs !== null) {
+  if (workerInputs !== null) {
     if (existing !== undefined) {
       existing.program = program;
-      existing.lastInputs = inputs;
+      existing.lastInputs = workerInputs;
     } else {
-      worker?.programCache.set(compilationReuseHash, new WorkerProgramCacheEntry(program, inputs));
+      assert(compilationReuseHash, 'Expected a compilation hash to exist.');
+      worker?.programCache.set(
+        compilationReuseHash,
+        new WorkerProgramCacheEntry(program, workerInputs),
+      );
     }
   }
 
@@ -147,8 +161,11 @@ export async function executeBuild(
   return emitRes.emitSkipped ? 1 : 0;
 }
 
-function getReuseHashForProgramOptions(options: ts.CompilerOptions): string {
-  const hash = stringify(options, {
+function getReuseHashForProject(
+  options: ts.CompilerOptions,
+  sortedInputFileNames: string[],
+): string {
+  const optionsKey = stringify(options, {
     replacer: (key, value) => {
       if (typeof key === 'string' && tsOptionsSafeToChangeForReuse.includes(key)) {
         return '';
@@ -156,6 +173,8 @@ function getReuseHashForProgramOptions(options: ts.CompilerOptions): string {
       return value;
     },
   });
-  assert(hash, 'Expected a hash to be computed for the TS compilation');
-  return hash;
+  assert(optionsKey, 'Expected a hash to be computed for the TS compilation');
+
+  const fullCacheKey = `${optionsKey}-${sortedInputFileNames.join('@')}`;
+  return crypto.createHash('sha256').update(fullCacheKey).digest('hex');
 }
