@@ -1,6 +1,5 @@
-load("//ng_project/config:compilation_mode.bzl", "partial_compilation_transition")
-load("@aspect_rules_js//js:libs.bzl", "js_lib_helpers")
 load("@aspect_rules_js//js:providers.bzl", "JsInfo")
+load("//ng_project/config:compilation_mode.bzl", "partial_compilation_transition")
 
 # Prints a debug message if "--define=VERBOSE_LOGS=true" is specified.
 def _debug(vars, *args):
@@ -233,6 +232,7 @@ def _angular_package_format_impl(ctx):
         # set the "module_name" in the provider struct.
         if hasattr(dep, "module_name"):
             module_name = dep.module_name
+
         #elif LinkablePackageInfo in dep:
         #    # Modern `ts_project` interop targets don't make use of legacy struct
         #    # providers, and instead encapsulate the `module_name` in an idiomatic provider.
@@ -289,7 +289,7 @@ def _angular_package_format_impl(ctx):
             guessed_paths = True
 
             # module_name = es2022_entry_point
-            module_name = es2022_entry_point.short_path[len(owning_package) + 1:][:-(len("index.js")+1)]
+            module_name = es2022_entry_point.short_path[len(owning_package) + 1:][:-(len("index.js") + 1)]
 
         bundle_name_base = primary_bundle_name if is_primary_entry_point else entry_point
         dts_bundle_name_base = "index" if is_primary_entry_point else "%s/index" % entry_point
@@ -416,70 +416,65 @@ def _angular_package_format_impl(ctx):
         },
     )
 
-
     return [
         DefaultInfo(files = depset([npm_package_directory])),
     ]
 
-
-
-
 angular_package_format = rule(
-  implementation = _angular_package_format_impl,
-  attrs = {
-    "srcs": attr.label_list(
-      doc = "TODO",
-      allow_files = True,
-      cfg = partial_compilation_transition
-    ),
-    "side_effect_entry_points": attr.string_list(
-        doc = "List of entry-points that have top-level side-effects",
-        default = [],
-    ),
-    "externals": attr.string_list(
-        doc = """List of external module that should not be bundled into the flat ESM bundles.""",
-        default = [],
-    ),
-    "license_banner": attr.label(
-        doc = """A .txt file passed to the `banner` config option of rollup.
+    implementation = _angular_package_format_impl,
+    attrs = {
+        "srcs": attr.label_list(
+            doc = "TODO",
+            allow_files = True,
+            cfg = partial_compilation_transition,
+        ),
+        "side_effect_entry_points": attr.string_list(
+            doc = "List of entry-points that have top-level side-effects",
+            default = [],
+        ),
+        "externals": attr.string_list(
+            doc = """List of external module that should not be bundled into the flat ESM bundles.""",
+            default = [],
+        ),
+        "license_banner": attr.label(
+            doc = """A .txt file passed to the `banner` config option of rollup.
         The contents of the file will be copied to the top of the resulting bundles.
         Configured substitutions are applied like with other files in the package.""",
-        allow_single_file = [".txt"],
-    ),
-    "license": attr.label(
-        doc = """A textfile that will be copied to the root of the npm package.""",
-        allow_single_file = True,
-    ),
-    "readme_md": attr.label(allow_single_file = [".md"]),
-    "ng_packager": attr.label(
-        default = Label(_DEFAULT_NG_PACKAGER),
-        executable = True,
-        cfg = "exec",
-    ),
-    "rollup": attr.label(
-        default = Label(_DEFAULT_ROLLUP),
-        executable = True,
-        cfg = "exec",
-    ),
-    "rollup_config_tmpl": attr.label(
-        default = Label(_DEFAULT_ROLLUP_CONFIG_TMPL),
-        allow_single_file = True,
-    ),
-    "_rollup_runtime_deps": attr.label_list(
-      default = [
-        Label("//:node_modules/@rollup/plugin-commonjs"),
-        Label("//:node_modules/@rollup/plugin-node-resolve"),
-        Label("//:node_modules/magic-string"),
-        Label("//:node_modules/rollup-plugin-dts"),
-        Label("//:node_modules/rollup-plugin-sourcemaps"),
-      ],
-    ),
+            allow_single_file = [".txt"],
+        ),
+        "license": attr.label(
+            doc = """A textfile that will be copied to the root of the npm package.""",
+            allow_single_file = True,
+        ),
+        "readme_md": attr.label(allow_single_file = [".md"]),
+        "ng_packager": attr.label(
+            default = Label(_DEFAULT_NG_PACKAGER),
+            executable = True,
+            cfg = "exec",
+        ),
+        "rollup": attr.label(
+            default = Label(_DEFAULT_ROLLUP),
+            executable = True,
+            cfg = "exec",
+        ),
+        "rollup_config_tmpl": attr.label(
+            default = Label(_DEFAULT_ROLLUP_CONFIG_TMPL),
+            allow_single_file = True,
+        ),
+        "_rollup_runtime_deps": attr.label_list(
+            default = [
+                Label("//:node_modules/@rollup/plugin-commonjs"),
+                Label("//:node_modules/@rollup/plugin-node-resolve"),
+                Label("//:node_modules/magic-string"),
+                Label("//:node_modules/rollup-plugin-dts"),
+                Label("//:node_modules/rollup-plugin-sourcemaps2"),
+            ],
+        ),
 
-    # Needed in order to allow for the outgoing transition on the `deps` attribute.
-    # https://docs.bazel.build/versions/main/skylark/config.html#user-defined-transitions.
-    "_allowlist_function_transition": attr.label(
-        default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-    ),
-  },
+        # Needed in order to allow for the outgoing transition on the `deps` attribute.
+        # https://docs.bazel.build/versions/main/skylark/config.html#user-defined-transitions.
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+        ),
+    },
 )
-

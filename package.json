@@ -17,17 +17,18 @@
     "@bazel/buildifier": "^7.3.1",
     "@rollup/plugin-commonjs": "^28.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-terser": "^0.4.4",
     "@types/node": "^22.10.1",
-    "rollup-plugin-dts": "6.1.1",
-    "tinyglobby": "0.2.12",
+    "json-stable-stringify": "^1.2.1",
     "magic-string": "0.30.17",
     "memfs": "^4.14.0",
     "prettier": "^3.4.1",
     "rollup": "^4.27.4",
-    "rollup-plugin-sourcemaps": "0.6.3",
+    "rollup-plugin-dts": "6.1.1",
+    "tinyglobby": "0.2.12",
     "typescript": "5.6.3"
   },
   "dependencies": {
-    "@rollup/plugin-terser": "^0.4.4"
+    "rollup-plugin-sourcemaps2": "^0.5.0"
   }
 }

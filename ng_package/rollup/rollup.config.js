@@ -12,7 +12,7 @@
 const {nodeResolve} = require('@rollup/plugin-node-resolve');
 const commonjs = require('@rollup/plugin-commonjs');
 const MagicString = require('magic-string');
-const sourcemaps = require('rollup-plugin-sourcemaps');
+const sourcemaps = require('rollup-plugin-sourcemaps2');
 const {dts} = require('rollup-plugin-dts');
 const path = require('path');
 const fs = require('fs');
@@ -171,13 +171,13 @@ for (const info of Object.values(entrypointMetadata)) {
   input[chunkName] = entryFile;
 }
 
-const sideEffectFileMatchers = sideEffectEntryPoints.map((entryPointModule) => {
+const sideEffectFileMatchers = sideEffectEntryPoints.map(entryPointModule => {
   const entryPointDir = path.join(
     process.cwd(), // Execroot.
     path.dirname(entrypointMetadata[entryPointModule].index.path),
   );
 
-  return (file) => file.startsWith(`${entryPointDir}/`);
+  return file => file.startsWith(`${entryPointDir}/`);
 });
 
 if (dtsMode) {
@@ -209,8 +209,8 @@ const config = {
     annotations: false,
     propertyReadSideEffects: false,
     unknownGlobalSideEffects: false,
-    moduleSideEffects: (id) => {
-      return sideEffectFileMatchers.some((matcher) => matcher(id));
+    moduleSideEffects: id => {
+      return sideEffectFileMatchers.some(matcher => matcher(id));
     },
   },
   output: {

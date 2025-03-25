@@ -23,6 +23,7 @@ ts_project(
     deps = [
         "//:node_modules/@angular/compiler-cli",
         "//:node_modules/@types/node",
+        "//:node_modules/json-stable-stringify",
         "//:node_modules/memfs",
         "//:node_modules/typescript",
     ],

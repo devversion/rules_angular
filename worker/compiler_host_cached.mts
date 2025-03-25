@@ -4,7 +4,7 @@ import * as ngtsc from '@angular/compiler-cli';
 import * as nodeFs from 'node:fs';
 import module from 'module';
 import path from 'node:path';
-
+import {createBaseCompilerHost} from './compiler_host_base.mjs';
 
 export function createCacheCompilerHost(
   options: ts.CompilerOptions,
@@ -12,7 +12,7 @@ export function createCacheCompilerHost(
   fs: ngtsc.FileSystem,
   modifiedResourceFilePaths: Set<string> | null,
 ): ngtsc.CompilerHost {
-  const base: ngtsc.CompilerHost = new ngtsc.NgtscCompilerHost(fs, options);
+  const base = createBaseCompilerHost(options, fs);
   const originalGetSourceFile = base.getSourceFile;
   const defaultLibLocation = base.getDefaultLibLocation?.();
 

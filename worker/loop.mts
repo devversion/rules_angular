@@ -1,20 +1,30 @@
-import {WorkRequest} from './protocol/worker.cjs';
 import * as ngtsc from '@angular/compiler-cli';
-import ts from 'typescript';
-import {WorkerSandboxFileSystem} from './file_system.mjs';
-import {createCacheCompilerHost} from './cache_compiler_host.mjs';
-import {FileCache} from './file_cache/file_cache.mjs';
-import {createCancellationToken} from './cancellation_token.mjs';
-import {diffWorkerInputsForModifiedResources} from './modified_resources.mjs';
 import assert from 'assert';
-import {ProgramCache, WorkerProgramCacheEntry} from './program_cache.mjs';
+import stringify from 'json-stable-stringify';
+import ts from 'typescript';
+import {createCancellationToken} from './cancellation_token.mjs';
+import {createBaseCompilerHost} from './compiler_host_base.mjs';
+import {createCacheCompilerHost} from './compiler_host_cached.mjs';
 import {debugMode, isVanillaTsCompilation} from './constants.mjs';
+import {FileCache} from './file_cache/file_cache.mjs';
+import {WorkerSandboxFileSystem} from './file_system.mjs';
+import {diffWorkerInputsForModifiedResources} from './modified_resources.mjs';
 import {AngularProgram} from './program_abstractions/ngtsc.mjs';
-import {VanillaTsProgram} from './program_abstractions/vanilla_ts.mjs';
 import {TsStructureIsReused} from './program_abstractions/struture_reused.mjs';
+import {VanillaTsProgram} from './program_abstractions/vanilla_ts.mjs';
+import {ProgramCache, WorkerProgramCacheEntry} from './program_cache.mjs';
+import {WorkRequest} from './protocol/worker.cjs';
 
 // Used for debug counting.
 let buildCount = 0;
+
+// List of compiler options that aren't incorporated
+// into a worker key for program re-use.
+const tsOptionsSafeToChangeForReuse = Object.keys({
+  outDir: '',
+  declarationDir: '',
+  rootDir: '',
+} as ts.CompilerOptions);
 
 export async function executeBuild(
   args: string[],
@@ -51,17 +61,10 @@ export async function executeBuild(
   const {options: cmdOptions} = ts.parseCommandLine(args);
   const parsedConfig = ngtsc.readConfiguration(cmdOptions.project!, cmdOptions, fs);
   const options = parsedConfig.options;
-  
-  // Build a worker key by concatenating a set of key values delimitted by an `@` character.
-  const workerKey = [
-    cmdOptions.project,
-    cmdOptions.outDir,
-    cmdOptions.declarationDir,
-    cmdOptions.rootDir,
-    options.compilationMode,
-  ].join(' @ ');
-  
-  const existing = worker?.programCache.get(workerKey);
+
+  // Build a worker hash by concatenating a set of key values delimited by an `@` character.
+  const compilationReuseHash = getReuseHashForProgramOptions(options);
+  const existing = worker?.programCache.get(compilationReuseHash);
 
   const modifiedResourceFilePaths =
     existing !== undefined && inputs !== null
@@ -73,7 +76,6 @@ export async function executeBuild(
     assert(inputs, 'Expected inputs when using persistent file cache.');
     worker.fileCache.updateCache(inputs);
   }
-
 
   // Invalidate the system to ensure we always use the virtual FS/host.
   // Object.defineProperty(ts, 'sys', {value: undefined, configurable: true});
@@ -97,7 +99,7 @@ export async function executeBuild(
   if (worker !== null) {
     host = createCacheCompilerHost(options, worker.fileCache, fs, modifiedResourceFilePaths);
   } else {
-    host = new ngtsc.NgtscCompilerHost(fs, options);
+    host = createBaseCompilerHost(options, fs);
   }
 
   const programDescriptor = isVanillaTsCompilation ? VanillaTsProgram : AngularProgram;
@@ -108,7 +110,7 @@ export async function executeBuild(
       existing.program = program;
       existing.lastInputs = inputs;
     } else {
-      worker?.programCache.set(workerKey, new WorkerProgramCacheEntry(program, inputs));
+      worker?.programCache.set(compilationReuseHash, new WorkerProgramCacheEntry(program, inputs));
     }
   }
 
@@ -143,4 +145,17 @@ export async function executeBuild(
   }
 
   return emitRes.emitSkipped ? 1 : 0;
+}
+
+function getReuseHashForProgramOptions(options: ts.CompilerOptions): string {
+  const hash = stringify(options, {
+    replacer: (key, value) => {
+      if (typeof key === 'string' && tsOptionsSafeToChangeForReuse.includes(key)) {
+        return '';
+      }
+      return value;
+    },
+  });
+  assert(hash, 'Expected a hash to be computed for the TS compilation');
+  return hash;
 }
