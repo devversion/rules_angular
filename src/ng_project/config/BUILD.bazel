@@ -1,4 +1,4 @@
-load("//ng_project/config:compilation_mode.bzl", "partial_compilation_flag")
+load("//src/ng_project/config:compilation_mode.bzl", "partial_compilation_flag")
 
 partial_compilation_flag(
     name = "partial_compilation",
