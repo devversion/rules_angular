@@ -7,7 +7,6 @@ export class VanillaTsProgram extends ProgramDescriptor {
   private _tsProgram: ts.Program | null = null;
 
   async init(): Promise<void> {
-    console.error(this.host.trace);
     this._tsProgram = ts.createProgram({
       rootNames: this.rootNames,
       options: this.options,
