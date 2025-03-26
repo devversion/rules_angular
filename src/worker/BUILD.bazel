@@ -24,9 +24,8 @@ ts_project(
         "//:node_modules/@types/node",
         "//:node_modules/json-stable-stringify",
         "//:node_modules/memfs",
-        "//:node_modules/typescript",
-        # This is the configurable Angular compiler version.
-        "@rules_angular_compiler//:bin",
+        "@rules_angular_configurable_deps//:angular_compiler_cli",
+        "@rules_angular_configurable_deps//:typescript",
     ],
 )
 
