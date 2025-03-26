@@ -7,7 +7,7 @@ def _debug(vars, *args):
         print("[ng_package.bzl]", args)
 
 _DEFAULT_NG_PACKAGER = "//src/ng_package/packager:bin"
-_DEFAULT_ROLLUP_CONFIG_TMPL = "//src/ng_package/rollup:rollup.config.js"
+_DEFAULT_ROLLUP_CONFIG_TMPL = "//src/ng_package/rollup:rollup.config"
 _DEFAULT_ROLLUP = "//src/ng_package/rollup:bin"
 
 _NG_PACKAGE_MODULE_MAPPINGS_ATTR = "ng_package_module_mappings"
