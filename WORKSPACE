@@ -32,11 +32,19 @@ load("@aspect_rules_js//js:toolchains.bzl", "DEFAULT_NODE_VERSION", "rules_js_re
 
 rules_js_register_toolchains(node_version = DEFAULT_NODE_VERSION)
 
-load("//setup:step_1.bzl", "step_1")
-step_1()
+load("//setup:step_1.bzl", "rules_angular_step1")
 
-load("//setup:step_2.bzl", "step_2")
-step_2()
+rules_angular_step1()
+
+load("//setup:step_2.bzl", "rules_angular_step2")
+
+rules_angular_step2()
+
+load("//setup:step_3.bzl", "rules_angular_step3")
+
+rules_angular_step3(
+    angular_compiler_cli = "//:node_modules/@angular/compiler-cli",
+)
 
 http_archive(
     name = "devinfra",

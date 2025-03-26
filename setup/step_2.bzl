@@ -1,4 +1,4 @@
 load("@rules_angular_npm//:repositories.bzl", "npm_repositories")
 
-def step_2():
+def rules_angular_step2():
     npm_repositories()
