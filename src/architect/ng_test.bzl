@@ -2,7 +2,7 @@
 
 load("@aspect_bazel_lib//lib:directory_path.bzl", "directory_path")
 load("@aspect_rules_js//js:defs.bzl", "js_test")
-load(":utils.bzl", "TOOLS")
+load(":utils.bzl", "ng_entry_point")
 
 # Idiomatic configuration files created by `ng generate`
 TEST_CONFIG = [
@@ -10,10 +10,7 @@ TEST_CONFIG = [
 ]
 
 NPM_DEPS = lambda node_modules: ["/".join([node_modules, s]) for s in [
-    "@angular/core",
-    "@angular/compiler",
-    "@angular/platform-browser",
-    "@angular/platform-browser-dynamic",
+    "@angular", # Take all of them, since the list varies across angular versions
     "@types/jasmine",
     "jasmine-core",
     "karma-chrome-launcher",
@@ -40,21 +37,15 @@ def ng_test(name, node_modules, ng_config, project_name = None, deps = [], **kwa
     deps = deps + NPM_DEPS(node_modules)
 
     project_name = project_name if project_name else native.package_name().split("/").pop()
-    entry_point = "_{}_architect_entry_point".format(name)
-    directory_path(
-        name = entry_point,
-        directory = "{}/@angular-devkit/architect-cli/dir".format(node_modules),
-        path = "bin/architect.js",
-    )
+
     js_test(
         name = name,
         chdir = native.package_name(),
-        args = ["%s:test" % project_name, "--no-watch"],
-        entry_point = entry_point,
-        data = srcs + deps + TEST_CONFIG + TOOLS(node_modules) + [
+        args = ["test", project_name, "--no-watch"],
+        entry_point = ng_entry_point(name, node_modules),
+        data = srcs + deps + TEST_CONFIG + [
             ng_config,
             ":ng-package",
-            "{}/@angular-devkit/architect-cli".format(node_modules),
         ],
         log_level = "debug",
         **kwargs

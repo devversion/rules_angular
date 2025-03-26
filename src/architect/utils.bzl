@@ -8,27 +8,25 @@ TEST_PATTERNS = [
     "dist/",
 ]
 
-TOOLS = lambda node_modules: ["/".join([node_modules, s]) for s in [
-    "@angular-devkit/build-angular",
-]]
-
 # Syntax sugar:
 # Reproduce the behavior of the logic a user would get from 
-# load("@npm//angular:@angular-devkit/architect-cli/package_json.bzl", architect_cli = "bin")
+# load("@npm//angular:@angular/cli/package_json.bzl", angular_cli = "bin")
+def ng_entry_point(name, node_modules):
+    entry_point_target = "_{}.ng_entry_point".format(name)
+    directory_path(
+        name = entry_point_target,
+        directory = "{}/@angular/cli/dir".format(node_modules),
+        path = "bin/ng.js",
+    )
+    return entry_point_target
+
 # buildifier: disable=function-docstring
 def ng_bin(name, node_modules):
-    entry_point = "_{}_architect_entry_point".format(name)
-    directory_path(
-        name = entry_point,
-        directory = "{}/@angular-devkit/architect-cli/dir".format(node_modules),
-        path = "bin/architect.js",
-    )
-
-    bin = "_{}_architect_binary".format(name)
+    bin_target = "_{}.ng_binary".format(name)
     js_binary(
-        name = bin,
-        data = ["{}/@angular-devkit/architect-cli".format(node_modules)],
-        entry_point = entry_point,
+        name = bin_target,
+        data = ["{}/@angular/cli".format(node_modules)],
+        entry_point = ng_entry_point(name, node_modules),
     )
 
-    return bin
+    return bin_target
