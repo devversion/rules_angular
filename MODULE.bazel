@@ -1,0 +1,7 @@
+module(
+    name = "rules_angular",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "aspect_bazel_lib", version = "2.10.0")
+bazel_dep(name = "aspect_rules_js", version = "2.0.0")
