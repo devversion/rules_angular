@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@angular/compiler-cli@19.0.1':
+    hash: hao23mk7q4o74zeeqtxamtqzyi
+    path: patches/@angular__compiler-cli.patch
+
 importers:
 
   .:
@@ -14,7 +19,7 @@ importers:
     devDependencies:
       '@angular/compiler-cli':
         specifier: ^19.0.1
-        version: 19.0.1(@angular/compiler@19.0.1(@angular/core@19.0.1(rxjs@7.8.1)(zone.js@0.15.0)))(typescript@5.6.3)
+        version: 19.0.1(patch_hash=hao23mk7q4o74zeeqtxamtqzyi)(@angular/compiler@19.0.1(@angular/core@19.0.1(rxjs@7.8.1)(zone.js@0.15.0)))(typescript@5.6.3)
       '@angular/core':
         specifier: ^19.0.1
         version: 19.0.1(rxjs@7.8.1)(zone.js@0.15.0)
@@ -737,7 +742,7 @@ snapshots:
       '@jridgewell/gen-mapping': 0.3.5
       '@jridgewell/trace-mapping': 0.3.25
 
-  '@angular/compiler-cli@19.0.1(@angular/compiler@19.0.1(@angular/core@19.0.1(rxjs@7.8.1)(zone.js@0.15.0)))(typescript@5.6.3)':
+  '@angular/compiler-cli@19.0.1(patch_hash=hao23mk7q4o74zeeqtxamtqzyi)(@angular/compiler@19.0.1(@angular/core@19.0.1(rxjs@7.8.1)(zone.js@0.15.0)))(typescript@5.6.3)':
     dependencies:
       '@angular/compiler': 19.0.1(@angular/core@19.0.1(rxjs@7.8.1)(zone.js@0.15.0))
       '@babel/core': 7.26.0
