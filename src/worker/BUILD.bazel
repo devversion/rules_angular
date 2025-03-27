@@ -2,8 +2,19 @@ load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("@aspect_rules_rollup//rollup:defs.bzl", "rollup")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("//src/private:symlink_package.bzl", "symlink_package")
 
 package(default_visibility = ["//visibility:public"])
+
+symlink_package(
+    name = "node_modules/@angular/compiler-cli",
+    src = "@rules_angular_configurable_deps//:angular_compiler_cli",
+)
+
+symlink_package(
+    name = "node_modules/typescript",
+    src = "@rules_angular_configurable_deps//:typescript",
+)
 
 copy_file(
     name = "copy_worker_js",
@@ -21,11 +32,11 @@ ts_project(
     declaration = True,
     tsconfig = "tsconfig.json",
     deps = [
+        ":node_modules/@angular/compiler-cli",
+        ":node_modules/typescript",
         "//:node_modules/@types/node",
         "//:node_modules/json-stable-stringify",
         "//:node_modules/memfs",
-        "@rules_angular_configurable_deps//:angular_compiler_cli",
-        "@rules_angular_configurable_deps//:typescript",
     ],
 )
 
