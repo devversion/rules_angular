@@ -7,15 +7,22 @@ def determineCompilationMode(ctx):
         return "partial"
     return "full"
 
+def _get_tsconfig_file(tsconfig_attr):
+    if TsConfigInfo in tsconfig_attr:
+        files_depset = tsconfig_attr[TsConfigInfo].deps
+    else:
+        files_depset = tsconfig_attr[DefaultInfo].files
+
+    # Obtain the last tsconfig to be added to the TsConfigInfo deps to extend from.
+    tsconfigs = files_depset.to_list()
+    if len(tsconfigs) == 0:
+        fail("No valid tsconfigs were provided to extend from")
+    return tsconfigs[-1]
+
 def _ng_project_config_impl(ctx):
     # Create a json file to write output to for merging with other tsconfig files.
     out = ctx.actions.declare_file("%s.json" % ctx.label.name)
-
-    # Obtain the last tsconfig to be added to the TsConfigInfo deps to extend from.
-    tsconfigs = ctx.attr.tsconfig[TsConfigInfo].deps.to_list()
-    if len(tsconfigs) == 0:
-        fail("No valid tsconfigs were provided to extend from")
-    tsconfig = tsconfigs[-1]
+    tsconfig = _get_tsconfig_file(ctx.attr.tsconfig)
 
     # Extends path discovery logic taken from: https://github.com/aspect-build/rules_ts/blob/1d21d227ce6c078ce7f78e45945e79ae45edefb4/ts/private/ts_config.bzl#L121-L127
     extends_path = relative_file(tsconfig.short_path, out.short_path)
@@ -55,6 +62,7 @@ ng_project_config = rule(
         "tsconfig": attr.label(
             providers = [TsConfigInfo],
             mandatory = True,
+            allow_files = True,
         ),
     },
 )

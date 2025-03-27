@@ -13,6 +13,6 @@ def ng_project_config(name, tsconfig, angular_compiler_options):
     # tsconfig file.
     ts_config(
         name = name,
-        src = "%s_ng_compiler_options" % name,
+        src = ":%s_ng_compiler_options" % name,
         deps = [tsconfig],
     )
