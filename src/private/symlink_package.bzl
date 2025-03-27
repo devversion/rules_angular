@@ -2,6 +2,19 @@ load("@aspect_bazel_lib//lib:paths.bzl", "relative_file")
 load("@aspect_rules_js//js:providers.bzl", "JsInfo", "js_info")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
+DOC = """
+Rule that symlinks a `//:node_modules/<pkg>` into another `node_modules` folder.
+
+This is useful for cases where node modules cross Bazel repository boundaries, e.g.
+when allowing for a configurable TS version, as otherwise those modules will not be
+resolvable at runtime in hermetic environments (like RBE).
+
+The test environments will not have the execroot `node_modules`, or user workspace
+`node_modules` reachable by traversal up from e.g. `@rules_angular//src/worker/loop.mts`.
+
+(Note: In build actions lookups work as we build in `bin/external/rules_angular`; but not in runfiles!)
+"""
+
 def _symlink_impl(ctx):
     destination = ctx.actions.declare_symlink(ctx.attr.name)
 
