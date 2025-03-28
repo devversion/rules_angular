@@ -12,12 +12,22 @@ JQ_DIST_REPLACE_TSCONFIG = """
       )
     )
 """
+# Similarly update paths in angular.json
+JQ_DIST_REPLACE_ANGULAR = """
+(
+  .projects[] | 
+  select(.architect?.build?.options?.outputPath)
+) |= (
+  .architect.build.options.outputPath |= gsub("^dist/(?<p>.+)$"; "projects/"+.p+"/dist")
+)
+"""
 
 # buildifier: disable=function-docstring
 def ng_config(name, **kwargs):
-    copy_to_bin(
+    jq(
         name = "angular",
         srcs = ["angular.json"],
+        filter = JQ_DIST_REPLACE_ANGULAR,
     )
 
     # NOTE: project dist directories are under the project dir unlike the Angular CLI default of the root dist folder

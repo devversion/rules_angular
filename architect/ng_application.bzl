@@ -42,7 +42,7 @@ def ng_application(name, node_modules, ng_config, project_name = None, srcs = []
         name = name,
         chdir = native.package_name(),
         args = ["%s:build" % project_name],
-        out_dirs = ["dist/%s" % project_name],
+        out_dirs = ["dist"],
         tool = tool,
         srcs = srcs + deps + APPLICATION_CONFIG + TOOLS(node_modules) + [
             ng_config,
