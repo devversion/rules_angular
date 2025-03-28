@@ -5,22 +5,3 @@ module(
 
 bazel_dep(name = "aspect_bazel_lib", version = "2.14.0")
 bazel_dep(name = "aspect_rules_js", version = "2.3.3")
-bazel_dep(name = "aspect_rules_ts", version = "3.5.1")
-
-npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
-npm.npm_translate_lock(
-    name = "rules_angular_npm",
-    npmrc = ":.npmrc",
-    data = [
-        ":package.json",
-        ":patches/@angular__compiler-cli.patch",
-    ],
-    pnpm_lock = ":pnpm-lock.yaml",
-)
-use_repo(npm, "rules_angular_npm")
-
-rules_ts_ext = use_extension("@aspect_rules_ts//ts:extensions.bzl", "ext")
-rules_ts_ext.deps(
-    name = "my_npm_typescript",
-)
-use_repo(rules_ts_ext, npm_typescript = "my_npm_typescript")
