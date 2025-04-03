@@ -1,3 +1,4 @@
+import {MAX_WORKER_MEMORY} from '../worker_memory.mjs';
 import {Cache} from './base.mjs';
 import ts from 'typescript';
 
@@ -9,8 +10,6 @@ export interface SourceFileEntry {
   // String is needed since we also use this cache for storing templates!
   value: ts.SourceFile | string;
 }
-
-const DEFAULT_MAX_MEM_USAGE = 1024 * (1 << 20); /* 1 MB */
 
 /**
  * FileCache is a trivial LRU cache for typescript-parsed bazel-output files.
@@ -37,7 +36,7 @@ export class FileCache {
    * Because we cannot measuse the cache memory footprint directly, we evict
    * when the process' total memory usage goes beyond this number.
    */
-  private maxMemoryUsage = DEFAULT_MAX_MEM_USAGE;
+  private maxMemoryUsage = MAX_WORKER_MEMORY;
 
   /**
    * Updates the cache with the given digests.
