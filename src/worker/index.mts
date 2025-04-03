@@ -1,8 +1,13 @@
 import {FileCache} from './file_cache/file_cache.mjs';
 import {executeBuild} from './loop.mjs';
 import {getArgsFromParamsFile} from './params_arg_file.mjs';
-import {ProgramCache} from './program_cache.mjs';
+import {
+  createProgramCache,
+  evictRecentlyUsedEntriesToFreeUpSpace,
+  ProgramCache,
+} from './program_cache.mjs';
 import worker from './protocol/worker.cjs';
+import {MAX_WORKER_MEMORY} from './worker_memory.mjs';
 
 if (!worker.isPersistentWorker(process.argv)) {
   const isRemoteExecution = process.cwd().startsWith('/b/f/w/');
@@ -20,7 +25,7 @@ if (!worker.isPersistentWorker(process.argv)) {
 
 if (worker.isPersistentWorker(process.argv)) {
   const fileCache = new FileCache();
-  const programCache: ProgramCache = new Map();
+  const programCache: ProgramCache = createProgramCache();
 
   worker.enterWorkerLoop(async r => {
     if (r.inputs === undefined) {
@@ -33,10 +38,16 @@ if (worker.isPersistentWorker(process.argv)) {
       r.output.write(`${args.join(' ')}\n`);
     };
 
-    return await executeBuild(r.arguments, {
+    const result = await executeBuild(r.arguments, {
       fileCache,
       programCache,
       req: r,
     });
+
+    if (process.memoryUsage().heapUsed > MAX_WORKER_MEMORY) {
+      evictRecentlyUsedEntriesToFreeUpSpace(programCache);
+    }
+
+    return result;
   });
 }

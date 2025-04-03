@@ -36,6 +36,7 @@ ts_project(
         ":node_modules/typescript",
         "//:node_modules/@types/node",
         "//:node_modules/json-stable-stringify",
+        "//:node_modules/lru-cache",
         "//:node_modules/memfs",
     ],
 )
