@@ -49,6 +49,6 @@ def ng_application(name, node_modules, ng_config, project_name = None, srcs = []
         name = name + ".serve",
         tool = tool,
         chdir = native.package_name(),
-        args = ["%s:serve" % project_name],
+        args = ["serve", project_name],
         data = srcs + deps,
     )
