@@ -75,7 +75,7 @@ def _write_rollup_config(
 
     ctx.actions.expand_template(
         output = config,
-        template = ctx.file.rollup_config_tmpl,
+        template = ctx.file._rollup_config_tmpl,
         substitutions = {
             "TMPL_banner_file": "\"%s\"" % ctx.file.license_banner.path if ctx.file.license_banner else "undefined",
             "TMPL_module_mappings": str(mappings),
@@ -106,7 +106,8 @@ def _run_rollup(ctx, rollup_config, inputs, dts_mode):
     # bazel rule prints nothing on success.
     args.add("--silent")
 
-    other_inputs = [rollup_config]
+    # TODO: Remove rollup_runtime_deps once we can pass in the rollup deps from the external.
+    other_inputs = [rollup_config] + ctx.files.rollup_runtime_deps
     if ctx.file.license_banner:
         other_inputs.append(ctx.file.license_banner)
     ctx.actions.run(
@@ -114,8 +115,7 @@ def _run_rollup(ctx, rollup_config, inputs, dts_mode):
         mnemonic = "AngularPackageRollup",
         inputs = depset(other_inputs, transitive = [inputs]),
         outputs = [outdir],
-        executable = ctx.executable.rollup,
-        tools = depset(ctx.files._rollup_runtime_deps),
+        executable = ctx.executable._rollup,
         arguments = [args],
         env = {
             "BAZEL_BINDIR": ".",
@@ -167,7 +167,7 @@ def _filter_esm_files_to_include(files, owning_package):
     return result
 
 def _angular_package_format_impl(ctx):
-    npm_package_directory = ctx.actions.declare_directory("%s.ng_pkg" % ctx.label.name)
+    apf_directory = ctx.actions.declare_directory("%s.apf" % ctx.label.name)
     owning_package = ctx.label.package
 
     # The name of the primary entry-point FESM bundles, computed name from the owning package
@@ -199,16 +199,9 @@ def _angular_package_format_impl(ctx):
     # - those that have a module_name attribute (they produce flat module metadata)
     collected_entry_points = []
 
-    # Name of the NPM package. The name is computed as we iterate through all
-    # dependencies of the `ng_package`.
-    npm_package_name = None
-
-    for dep in ctx.attr.srcs:
+    for dep in ctx.attr.deps:
         if not dep.label.package.startswith(owning_package):
             fail("Unexpected dependency. %s is defined outside of %s." % (dep, owning_package))
-
-        # Module name of the current entry-point. eg. @angular/core/testing
-        module_name = ""
 
         # Package name where this entry-point is defined in,
         entry_point_package = dep.label.package
@@ -228,68 +221,33 @@ def _angular_package_format_impl(ctx):
         unscoped_all_entry_point_esm2022.append(unscoped_esm2022_depset)
         unscoped_all_entry_point_dts.append(unscoped_types_depset)
 
-        # Extract the "module_name" from either "ts_library" or "ng_module". Both
-        # set the "module_name" in the provider struct.
-        if hasattr(dep, "module_name"):
-            module_name = dep.module_name
+        # Note: Using `to_list()` is expensive but we cannot get around this here as
+        # we need to filter out generated files and need to be able to iterate through
+        # typing files in order to determine the entry-point type file.
+        unscoped_types = unscoped_types_depset.to_list()
 
-        #elif LinkablePackageInfo in dep:
-        #    # Modern `ts_project` interop targets don't make use of legacy struct
-        #    # providers, and instead encapsulate the `module_name` in an idiomatic provider.
-        #    module_name = dep[LinkablePackageInfo].package_name
+        # Note: Using `to_list()` is expensive but we cannot get around this here as
+        # we need to filter out generated files to be able to detect entry-point index
+        # files when no flat module metadata is available.
+        unscoped_esm2022_list = unscoped_esm2022_depset.to_list()
 
-        if is_primary_entry_point:
-            npm_package_name = module_name
+        # In case the dependency is built through the "ts_library" rule, or the "ng_module"
+        # rule does not generate a flat module bundle, we determine the index file and
+        # typings entry-point through the most reasonable defaults (i.e. "package/index").
+        es2022_entry_point = _find_matching_file(
+            unscoped_esm2022_list,
+            [
+                "%s/index.mjs" % entry_point_package,
+                # Fallback for `ts_project` support where `.mjs` is not auto-generated.
+                "%s/index.js" % entry_point_package,
+            ],
+        )
+        typings_entry_point = _find_matching_file(unscoped_types, ["%s/index.d.ts" % entry_point_package])
 
-        if hasattr(dep, "angular") and hasattr(dep.angular, "flat_module_metadata"):
-            # For dependencies which are built using the "ng_module" with flat module bundles
-            # enabled, we determine the module name, the flat module index file, the metadata
-            # file and the typings entry point from the flat module metadata which is set by
-            # the "ng_module" rule.
-            ng_module_metadata = dep.angular.flat_module_metadata
-            module_name = ng_module_metadata.module_name
-            es2022_entry_point = ng_module_metadata.flat_module_out_prodmode_file
-            typings_entry_point = ng_module_metadata.typings_file
-            guessed_paths = False
-
-            _debug(
-                ctx.var,
-                "entry-point %s is built using a flat module bundle." % dep,
-                "using %s as main file of the entry-point" % es2022_entry_point,
-            )
-        else:
-            _debug(
-                ctx.var,
-                "entry-point %s does not have flat module metadata." % dep,
-                "guessing `index.mjs` as main file of the entry-point",
-            )
-
-            # Note: Using `to_list()` is expensive but we cannot get around this here as
-            # we need to filter out generated files and need to be able to iterate through
-            # typing files in order to determine the entry-point type file.
-            unscoped_types = unscoped_types_depset.to_list()
-
-            # Note: Using `to_list()` is expensive but we cannot get around this here as
-            # we need to filter out generated files to be able to detect entry-point index
-            # files when no flat module metadata is available.
-            unscoped_esm2022_list = unscoped_esm2022_depset.to_list()
-
-            # In case the dependency is built through the "ts_library" rule, or the "ng_module"
-            # rule does not generate a flat module bundle, we determine the index file and
-            # typings entry-point through the most reasonable defaults (i.e. "package/index").
-            es2022_entry_point = _find_matching_file(
-                unscoped_esm2022_list,
-                [
-                    "%s/index.mjs" % entry_point_package,
-                    # Fallback for `ts_project` support where `.mjs` is not auto-generated.
-                    "%s/index.js" % entry_point_package,
-                ],
-            )
-            typings_entry_point = _find_matching_file(unscoped_types, ["%s/index.d.ts" % entry_point_package])
-            guessed_paths = True
-
-            # module_name = es2022_entry_point
-            module_name = es2022_entry_point.short_path[len(owning_package) + 1:][:-(len("index.js") + 1)]
+        module_name = "/".join([_ for _ in [
+            owning_package,
+            es2022_entry_point.short_path[len(owning_package) + 1:][:-(len("index.js") + 1)]
+        ] if _ != ''])
 
         bundle_name_base = primary_bundle_name if is_primary_entry_point else entry_point
         dts_bundle_name_base = "index" if is_primary_entry_point else "%s/index" % entry_point
@@ -303,7 +261,8 @@ def _angular_package_format_impl(ctx):
             # TODO(devversion): Put all types under `/types/` folder. Breaking change in v20.
             dts_bundle_relative_path = "%s.d.ts" % dts_bundle_name_base,
             typings_entry_point = typings_entry_point,
-            guessed_paths = guessed_paths,
+            # TODO: Determine if we can just remove this as we are always "guessing" now
+            guessed_paths = True,
         ))
 
     # Note: Using `to_list()` is expensive but we cannot get around this here as
@@ -317,18 +276,6 @@ def _angular_package_format_impl(ctx):
     esm2022 = _filter_esm_files_to_include(unscoped_all_entry_point_esm2022_list, owning_package)
 
     unscoped_all_entry_point_dts_depset = depset(transitive = unscoped_all_entry_point_dts)
-
-    packager_inputs = (
-        static_files +
-        esm2022
-    )
-
-    packager_args = ctx.actions.args()
-    packager_args.use_param_file("%s", use_always = True)
-
-    # The order of arguments matters here, as they are read in order in packager.ts.
-    packager_args.add(npm_package_directory.path)
-    packager_args.add(ctx.label.package)
 
     # Marshal the metadata into a JSON string so we can parse the data structure
     # in the TypeScript program easily.
@@ -372,14 +319,23 @@ def _angular_package_format_impl(ctx):
     dts_rollup_inputs = depset(static_files, transitive = [unscoped_all_entry_point_dts_depset])
     dts_bundles_out = _run_rollup(ctx, dts_rollup_config, dts_rollup_inputs, dts_mode = True)
 
+
+    packager_inputs = (static_files + esm2022)
     packager_inputs.append(fesm_bundles_out)
     packager_inputs.append(dts_bundles_out)
+
+    packager_args = ctx.actions.args()
+    packager_args.use_param_file("%s", use_always = True)
+
+    # The order of arguments matters here, as they are read in order in packager.ts.
+    packager_args.add(apf_directory.path)
+    packager_args.add(ctx.label.package)
 
     # Encodes the package metadata with all its entry-points into JSON so that
     # it can be deserialized by the packager tool. The struct needs to match with
     # the `PackageMetadata` interface in the packager tool.
     packager_args.add(json.encode(struct(
-        npmPackageName = npm_package_name,
+        npmPackageName = ctx.attr.package,
         entryPoints = metadata_arg,
         fesmBundlesOut = _serialize_file(fesm_bundles_out),
         dtsBundlesOut = _serialize_file(dts_bundles_out),
@@ -389,14 +345,14 @@ def _angular_package_format_impl(ctx):
         packager_inputs.append(ctx.file.readme_md)
         packager_args.add(ctx.file.readme_md.path)
     else:
-        # placeholder
+        # Because packager args are all positional we need to include an arg even if no value is provided.
         packager_args.add("")
 
     if ctx.file.license:
         packager_inputs.append(ctx.file.license)
         packager_args.add(ctx.file.license.path)
     else:
-        #placeholder
+        # Because packager args are all positional we need to include an arg even if no value is provided.
         packager_args.add("")
 
     packager_args.add(_serialize_files_for_arg(esm2022))
@@ -405,11 +361,11 @@ def _angular_package_format_impl(ctx):
     packager_args.add(json.encode(ctx.attr.side_effect_entry_points))
 
     ctx.actions.run(
-        progress_message = "Angular Packaging: building npm package %s" % str(ctx.label),
+        progress_message = "Bundling APF (%s)" % str(ctx.label),
         mnemonic = "AngularPackage",
         inputs = packager_inputs,
-        outputs = [npm_package_directory],
-        executable = ctx.executable.ng_packager,
+        outputs = [apf_directory],
+        executable = ctx.executable._ng_packager,
         arguments = [packager_args],
         env = {
             "BAZEL_BINDIR": ".",
@@ -417,25 +373,30 @@ def _angular_package_format_impl(ctx):
     )
 
     return [
-        DefaultInfo(files = depset([npm_package_directory])),
+        DefaultInfo(files = depset([apf_directory])),
     ]
 
 angular_package_format = rule(
     implementation = _angular_package_format_impl,
     attrs = {
         "srcs": attr.label_list(
-            doc = "TODO",
+            doc = "Source files to be included in package",
             allow_files = True,
+        ),
+        "deps": attr.label_list(
+            doc = "Targets that produce production JavaScript outputs to be included in the package.",
             cfg = partial_compilation_transition,
+            providers = [JsInfo],
         ),
         "side_effect_entry_points": attr.string_list(
             doc = "List of entry-points that have top-level side-effects",
             default = [],
         ),
         "externals": attr.string_list(
-            doc = """List of external module that should not be bundled into the flat ESM bundles.""",
+            doc = """List of external module that should not be bundled into the ESM bundles.""",
             default = [],
         ),
+        # TODO: Determine if we can remove this
         "license_banner": attr.label(
             doc = """A .txt file passed to the `banner` config option of rollup.
         The contents of the file will be copied to the top of the resulting bundles.
@@ -444,24 +405,39 @@ angular_package_format = rule(
         ),
         "license": attr.label(
             doc = """A textfile that will be copied to the root of the npm package.""",
-            allow_single_file = True,
+            allow_single_file = ["LICENSE"],
         ),
-        "readme_md": attr.label(allow_single_file = [".md"]),
-        "ng_packager": attr.label(
+        "readme_md": attr.label(
+            doc = """A textfile that will be copied to the root of the npm package.""",
+            allow_single_file = [".md"]
+        ),
+        "package": attr.string(
+            doc = "The name of the package being produced.",
+            mandatory = True,
+        ),       
+        # TODO: Properly handled nested packages, copying contents into the nested location
+        "nested_packages": attr.label_list(
+            doc = "TODO",
+            default = [],
+        ),
+        
+        
+        "_ng_packager": attr.label(
             default = Label(_DEFAULT_NG_PACKAGER),
             executable = True,
             cfg = "exec",
         ),
-        "rollup": attr.label(
+        "_rollup": attr.label(
             default = Label(_DEFAULT_ROLLUP),
             executable = True,
             cfg = "exec",
         ),
-        "rollup_config_tmpl": attr.label(
+        "_rollup_config_tmpl": attr.label(
             default = Label(_DEFAULT_ROLLUP_CONFIG_TMPL),
             allow_single_file = True,
         ),
-        "_rollup_runtime_deps": attr.label_list(
+        # TODO: Remove rollup_runtime_deps once we can pass in the rollup deps from the external.
+        "rollup_runtime_deps": attr.label_list(
             default = [
                 Label("//:node_modules/@rollup/plugin-commonjs"),
                 Label("//:node_modules/@rollup/plugin-node-resolve"),
@@ -470,7 +446,6 @@ angular_package_format = rule(
                 Label("//:node_modules/rollup-plugin-sourcemaps2"),
             ],
         ),
-
         # Needed in order to allow for the outgoing transition on the `deps` attribute.
         # https://docs.bazel.build/versions/main/skylark/config.html#user-defined-transitions.
         "_allowlist_function_transition": attr.label(

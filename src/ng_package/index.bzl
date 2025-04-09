@@ -4,8 +4,7 @@ load("//src/ng_package:angular_package_format.bzl", "angular_package_format")
 def ng_package(name, **kwargs):
     angular_package_format(
         name = "%s_apf" % name,
-        srcs = kwargs.pop("srcs", []),
-        externals = kwargs.pop("externals", []),
+        **kwargs
     )
 
     _npm_package(
@@ -13,5 +12,8 @@ def ng_package(name, **kwargs):
         srcs = [
             "%s_apf" % name,
         ],
-        **kwargs
+        replace_prefixes = {
+            "%s_apf.apf" % name: "/",
+        },
+        package = kwargs.get("package", None),
     )
