@@ -1,10 +1,22 @@
 load("@aspect_rules_js//npm:defs.bzl", _npm_package = "npm_package")
 load("//src/ng_package:angular_package_format.bzl", "angular_package_format")
+load("//src/ng_package/text_replace:index.bzl", "text_replace")
 
 def ng_package(name, **kwargs):
+    # Substitutions to apply on file content in the APF directory files.
+    substitutions = kwargs.pop("substitutions", {})
+
     angular_package_format(
         name = "%s_apf" % name,
         **kwargs
+    )
+
+    text_replace(
+        name = "%s_apf_substituted" % name,
+        data = [
+            ":%s_apf" % name,
+        ],
+        substitutions = substitutions,
     )
 
     _npm_package(
