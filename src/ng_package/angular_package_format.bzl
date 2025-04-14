@@ -414,13 +414,7 @@ angular_package_format = rule(
         "package": attr.string(
             doc = "The name of the package being produced.",
             mandatory = True,
-        ),       
-        # TODO: Properly handled nested packages, copying contents into the nested location
-        "nested_packages": attr.label_list(
-            doc = "TODO",
-            default = [],
-        ),
-        
+        ),        
         
         "_ng_packager": attr.label(
             default = Label(_DEFAULT_NG_PACKAGER),
