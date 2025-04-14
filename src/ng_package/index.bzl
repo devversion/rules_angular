@@ -2,7 +2,7 @@ load("@aspect_rules_js//npm:defs.bzl", _npm_package = "npm_package")
 load("//src/ng_package:angular_package_format.bzl", "angular_package_format")
 load("//src/ng_package/text_replace:index.bzl", "text_replace")
 
-def ng_package(name, nested_packages = [], substitutions = [], **kwargs):
+def ng_package(name, nested_packages = [], substitutions = [], tags = [], **kwargs):
     angular_package_format(
         name = "%s_apf" % name,
         **kwargs
@@ -22,5 +22,6 @@ def ng_package(name, nested_packages = [], substitutions = [], **kwargs):
         replace_prefixes = {
             "%s_apf_substituted" % name: "/",
         },
+        tags = tags,
         package = kwargs.get("package", None),
     )
