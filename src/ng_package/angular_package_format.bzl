@@ -245,7 +245,7 @@ def _angular_package_format_impl(ctx):
         typings_entry_point = _find_matching_file(unscoped_types, ["%s/index.d.ts" % entry_point_package])
 
         module_name = "/".join([_ for _ in [
-            owning_package,
+            ctx.attr.package,
             es2022_entry_point.short_path[len(owning_package) + 1:][:-(len("index.js") + 1)]
         ] if _ != ''])
 

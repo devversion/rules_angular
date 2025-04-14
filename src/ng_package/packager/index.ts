@@ -236,24 +236,6 @@ function main(args: string[]): void {
     const entryPointInfo = metadata.entryPoints[packageName];
     const packageJsonContainingDir = path.dirname(packageJsonOutRelativePath);
 
-    // If a package json file has been discovered that does not match any
-    // entry-point in the metadata, we report a warning as most likely the target
-    // is configured incorrectly (e.g. missing `module_name` attribute).
-    if (!entryPointInfo) {
-      // Ideally we should throw here, as we got an entry point that doesn't
-      // have flat module metadata / bundle index, so it may have been an
-      // ng_module that's missing a module_name attribute.
-      // However, @angular/compiler can't be an ng_module, as it's the internals
-      // of the ngc compiler, yet we want to build an ng_package for it.
-      // So ignore package.json files when we are missing data.
-      console.error('WARNING: no module metadata for package', packageName);
-      console.error('   Not updating the package.json file to point to it');
-      console.error(
-        '   The ng_module for this package is possibly missing the module_name attribute ',
-      );
-      return packageJson;
-    }
-
     // If we guessed the index paths for a module, and it contains an explicit `package.json`
     // file that already sets format properties, we skip automatic insertion of format
     // properties but report a warning in case properties have been set by accident.
