@@ -6,5 +6,8 @@ ts_project(
     supports_workers = 1,
     tsc_worker = "//src/worker:worker_vanilla_ts",
     tsconfig = "tsconfig.json",
-    deps = ["//:node_modules/@angular/core"],
+    deps = [
+        "//test/app",
+        "//:node_modules/@angular/core",
+    ],
 )
