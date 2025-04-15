@@ -2,6 +2,6 @@
   "compilerOptions": {
     "strict": true,
     "lib": ["esnext"],
-    "traceResolution": true
+    "traceResolution": false
   }
 }

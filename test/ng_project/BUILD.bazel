@@ -1,4 +1,4 @@
-load("//ng_project:index.bzl", "ng_project")
+load("//src/ng_project:index.bzl", "ng_project")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_config")
 
 ng_project(

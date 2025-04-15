@@ -1,5 +1,4 @@
 import {Component, input} from '@angular/core';
-import {} from 'test';
 import {} from '../../app/index';
 import {fine} from './other_file';
 

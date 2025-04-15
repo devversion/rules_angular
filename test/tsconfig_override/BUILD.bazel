@@ -6,7 +6,7 @@ ts_project(
     args = ["--sourceMap"],
     source_map = True,
     supports_workers = 1,
-    tsc_worker = "//worker:worker_vanilla_ts",
+    tsc_worker = "//src/worker:worker_vanilla_ts",
     tsconfig = "tsconfig.json",
     validate = False,
     deps = ["//:node_modules/@angular/core"],

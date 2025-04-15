@@ -1,20 +1,20 @@
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
-load("//ng_package:angular_package_format.bzl", "angular_package_format")
+load("//src/ng_package:angular_package_format.bzl", "angular_package_format")
 
 ts_project(
     name = "app",
     srcs = glob(["**/*.ts"]) + ["template.html"],
     supports_workers = 1,
     declaration = True,
-    tsc_worker = "//worker:worker_angular",
+    tsc_worker = "//src/worker:worker_angular",
     tsconfig = "tsconfig.json",
     deps = ["//:node_modules/@angular/core"],
+    visibility = [":__subpackages__"],
 )
 
 
 angular_package_format(
     name = "pkg",
-    srcs = [
-        ":app",
-    ],
+    deps = [":app"],
+    package = "test-123",
 )
