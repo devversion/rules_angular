@@ -2,7 +2,7 @@
 
 load("@aspect_bazel_lib//lib:jq.bzl", "jq")
 load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary")
-load(":utils.bzl", "TEST_PATTERNS", "TOOLS", "ng_bin")
+load(":utils.bzl", "TEST_PATTERNS", "ng_bin")
 
 # Idiomatic configuration files created by `ng generate`
 LIBRARY_CONFIG = [
@@ -12,6 +12,7 @@ LIBRARY_CONFIG = [
 ]
 
 NPM_DEPS = lambda node_modules: ["/".join([node_modules, s]) for s in [
+    "@angular/build",
     "@angular/common",
     "@angular/core",
     "@angular/router",
@@ -33,7 +34,6 @@ def ng_library(name, node_modules, ng_config, project_name = None, srcs = [], de
       **kwargs: extra args passed to main Angular CLI rules
     """
     srcs = srcs or native.glob(["src/**/*"], exclude = TEST_PATTERNS)
-    deps = deps + NPM_DEPS(node_modules)
 
     project_name = project_name or native.package_name().split("/").pop()
     build_target = "{}.build".format(name)
@@ -50,11 +50,11 @@ def ng_library(name, node_modules, ng_config, project_name = None, srcs = [], de
     js_run_binary(
         name = build_target,
         chdir = native.package_name(),
-        args = ["%s:build" % project_name],
+        args = ["build", project_name],
         out_dirs = ["dist"],
         tool = ng_bin(name, node_modules),
-        srcs = srcs + deps + LIBRARY_CONFIG + TOOLS(node_modules) + [ng_config, "ng-package"],
-        mnemonic = "NgArchitectBuild",
+        srcs = srcs + deps + NPM_DEPS(node_modules) + LIBRARY_CONFIG + [ng_config, "ng-package"],
+        mnemonic = "NgBuild",
         visibility = ["//visibility:private"],
         **kwargs
     )

@@ -15,11 +15,15 @@ JQ_DIST_REPLACE_TSCONFIG = """
 # Similarly update paths in angular.json
 JQ_DIST_REPLACE_ANGULAR = """
 (
-  .projects[] | 
-  select(.architect?.build?.options?.outputPath)
-) |= (
-  .architect.build.options.outputPath |= gsub("^dist/(?<p>.+)$"; "projects/"+.p+"/dist")
-)
+  .projects | to_entries | map(
+    if .value.projectType == "application" then
+      .value.architect.build.options.outputPath = "projects/" + .key + "/dist"
+    else
+      .
+    end
+  ) | from_entries
+) as $updated |
+. * {projects: $updated}
 """
 
 # buildifier: disable=function-docstring

@@ -1,7 +1,7 @@
 "Macro definition to build and serve an application"
 
 load("@aspect_rules_js//js:defs.bzl", "js_run_binary", "js_run_devserver")
-load(":utils.bzl", "TEST_PATTERNS", "TOOLS", "ng_bin")
+load(":utils.bzl", "TEST_PATTERNS", "ng_bin")
 
 # Idiomatic configuration files created by `ng generate`
 APPLICATION_CONFIG = [
@@ -10,11 +10,7 @@ APPLICATION_CONFIG = [
 
 # # Typical dependencies of angular apps
 NPM_DEPS = lambda node_modules: ["/".join([node_modules, s]) for s in [
-    "@angular/common",
-    "@angular/core",
-    "@angular/router",
-    "@angular/platform-browser",
-    "@angular/platform-browser-dynamic",
+    "@angular",  # Take all of them, since the list varies across angular versions
     "rxjs",
     "tslib",
     "zone.js",
@@ -34,19 +30,18 @@ def ng_application(name, node_modules, ng_config, project_name = None, srcs = []
       **kwargs: extra args passed to main Angular CLI rules
     """
     srcs = srcs or native.glob(["src/**/*"], exclude = TEST_PATTERNS)
-    deps = deps + NPM_DEPS(node_modules)
+    deps = deps + NPM_DEPS(node_modules) + APPLICATION_CONFIG
+    deps.append(ng_config)
     project_name = project_name if project_name else name
     tool = ng_bin(name, node_modules)
 
     js_run_binary(
         name = name,
         chdir = native.package_name(),
-        args = ["%s:build" % project_name],
+        args = ["build", project_name],
         out_dirs = ["dist"],
         tool = tool,
-        srcs = srcs + deps + APPLICATION_CONFIG + TOOLS(node_modules) + [
-            ng_config,
-        ],
+        srcs = srcs + deps,
         **kwargs
     )
 
@@ -54,8 +49,6 @@ def ng_application(name, node_modules, ng_config, project_name = None, srcs = []
         name = name + ".serve",
         tool = tool,
         chdir = native.package_name(),
-        args = ["%s:serve" % project_name],
-        data = srcs + deps + APPLICATION_CONFIG + TOOLS(node_modules) + [
-            ng_config,
-        ],
+        args = ["serve", project_name],
+        data = srcs + deps,
     )
