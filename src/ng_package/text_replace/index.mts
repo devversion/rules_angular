@@ -22,8 +22,33 @@ async function applySubstitutions(
   return fs.writeFile(destination, content);
 }
 
+/**
+ * Regex for extracting values from status files.
+ * 
+ * Bazel's status files are understood to have the structure
+ * STABLE_VALUE abc123
+ * ANOTHER_VAL RandomNumber
+ */
+const statusFileRegex = /^([A-Z_]+) (.*)$/gm;
+
+/** Parse the provided status file and create an array of regex, string replacement pairs. */
+async function parseStatusFile(filePath: string) {
+  const result: [RegExp, string][] = [];
+  if (filePath !== '') {
+    const content = await fs.readFile(filePath, {encoding: 'utf-8'});
+    console.log(content);
+    for (const match of Array.from(content.matchAll(statusFileRegex))) {
+      const [_, key, value] = match;
+      if (key && value) {
+        result.push([new RegExp(`{{${key}}}`, 'g'), value])
+      }
+    }
+  }
+  return result;
+}
+
 async function main(args: string[]) {
-  const [substitutionsArg, originsRaw, destinationRaw] = (
+  const [substitutionsArg, volatileFileRaw, stableFileRaw, originsRaw, destinationRaw] = (
     await fs.readFile(args[0], {encoding: 'utf-8'})
   )
     .split('\n')
@@ -32,10 +57,17 @@ async function main(args: string[]) {
   const origins = JSON.parse(originsRaw) as string[];
   /** The destination directory for the copied files with substitutions applied. */
   const destinationDir = destinationRaw as string;
+  /** The path to the volitate status file from bazel. */
+  const volatileFile = volatileFileRaw as string;
+  /** The path to the stable status file from bazel. */
+  const stableFile = stableFileRaw as string;
+
   /** Map of substitutions to make whenever the regex key is matched in a file's content. */
   const substitutions = Object.entries(JSON.parse(substitutionsArg) as Record<string, string>).map<
     [RegExp, string]
   >(([key, val]) => [new RegExp(key, 'g'), val]);
+  substitutions.push(...(await parseStatusFile(volatileFile)));
+  substitutions.push(...(await parseStatusFile(stableFile)));
 
   /** Discovered file paths to apply substitutions to, split into the origin path and the file path based on that origin. */
   let files: [string, string][] = [];
@@ -43,7 +75,7 @@ async function main(args: string[]) {
   for (let origin of origins) {
     files.push(
       // Find all of the files in the origin directory and add them to the list.
-      ...globSync('**', {cwd: origin}).map<[string, string]>(file => [origin, file]),
+      ...globSync('**', {cwd: origin}).map<[string, string]>((file: string) => [origin, file]),
     );
   }
 
