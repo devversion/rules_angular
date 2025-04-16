@@ -3,13 +3,20 @@ def _text_replace_impl(ctx):
     # Directory where replaced files will be 
     replaced_directory = ctx.actions.declare_directory("%s" % ctx.label.name)
 
-    inputs = ctx.files.directory
+    inputs = [
+        ctx.version_file,
+        ctx.info_file
+    ] + ctx.files.directory
 
     args = ctx.actions.args()
     args.use_param_file("%s", use_always = True)
 
     # The mapping of substitutions to apply
     args.add(ctx.attr.substitutions)
+    # The path to the volite status file for substitution of values from the file
+    args.add(ctx.version_file.path)
+    # The path to the stable status file for substitution of values from the file
+    args.add(ctx.info_file.path)
     # All of the file/directory locations to discover files to apply the substitutions to.
     args.add(json.encode([input.path for input in inputs]))
     # The location to place all of the copied files.
