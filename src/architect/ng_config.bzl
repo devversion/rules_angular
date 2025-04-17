@@ -16,6 +16,8 @@ JQ_DIST_REPLACE_TSCONFIG = """
 JQ_DIST_REPLACE_ANGULAR = """
 (
   .projects | to_entries | map(
+    .value.architect.test.options.preserveSymlinks = true
+    |
     if .value.projectType == "application" then
       .value.architect.build.options.outputPath = "projects/" + .key + "/dist"
     else
