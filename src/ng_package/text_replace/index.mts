@@ -36,7 +36,6 @@ async function parseStatusFile(filePath: string) {
   const result: [RegExp, string][] = [];
   if (filePath !== '') {
     const content = await fs.readFile(filePath, {encoding: 'utf-8'});
-    console.log(content);
     for (const match of Array.from(content.matchAll(statusFileRegex))) {
       const [_, key, value] = match;
       if (key && value) {
