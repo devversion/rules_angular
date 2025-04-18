@@ -2,6 +2,12 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {globSync} from 'tinyglobby';
 
+/** Type for descripting a file that substitutions are being applied to. */
+interface File {
+  full: string;
+  relative: string;
+}
+
 /** Apply the provided substitutions to the content of the file at the origin, writing it to the provided destination. */
 async function applySubstitutions(
   origin: string,
@@ -24,7 +30,7 @@ async function applySubstitutions(
 
 /**
  * Regex for extracting values from status files.
- * 
+ *
  * Bazel's status files are understood to have the structure
  * STABLE_VALUE abc123
  * ANOTHER_VAL RandomNumber
@@ -39,7 +45,7 @@ async function parseStatusFile(filePath: string) {
     for (const match of Array.from(content.matchAll(statusFileRegex))) {
       const [_, key, value] = match;
       if (key && value) {
-        result.push([new RegExp(`{{${key}}}`, 'g'), value])
+        result.push([new RegExp(`{{${key}}}`, 'g'), value]);
       }
     }
   }
@@ -47,13 +53,38 @@ async function parseStatusFile(filePath: string) {
 }
 
 async function main(args: string[]) {
-  const [substitutionsArg, volatileFileRaw, stableFileRaw, originsRaw, destinationRaw] = (
+  const [substitutionsArg,  originsRaw, volatileFileRaw, stableFileRaw, binPathRaw, basePathRaw, destinationRaw] = (
     await fs.readFile(args[0], {encoding: 'utf-8'})
   )
     .split('\n')
     .map(line => line.replace(/^'(.*)'$/, '$1'));
+  /** The basepath for all source files to be split from. */
+  const basePath = basePathRaw as string;
+  /** The binary root location for the action. */
+  const binPath = binPathRaw as string;
+  /** The base path of the package. */
+  const packagePath = basePath.slice(binPath.length+1);
   /** List of files to propcess for substitution */
-  const origins = JSON.parse(originsRaw) as string[];
+  const origins: File[] = (JSON.parse(originsRaw) as string[]).map(
+    origin => {
+      if (origin.startsWith(basePath)) {
+        return {
+          full: origin,
+          relative: path.relative(basePath, origin)
+        }
+      }
+      if (origin.startsWith(packagePath)) {
+        return {
+          full: origin,
+          relative: origin.slice(packagePath.length + 1)
+        }
+      }
+      return {
+        full: origin,
+        relative: origin,
+      };
+    }
+  )
   /** The destination directory for the copied files with substitutions applied. */
   const destinationDir = destinationRaw as string;
   /** The path to the volitate status file from bazel. */
@@ -69,19 +100,29 @@ async function main(args: string[]) {
   substitutions.push(...(await parseStatusFile(stableFile)));
 
   /** Discovered file paths to apply substitutions to, split into the origin path and the file path based on that origin. */
-  let files: [string, string][] = [];
-
-  for (let origin of origins) {
-    files.push(
-      // Find all of the files in the origin directory and add them to the list.
-      ...globSync('**', {cwd: origin}).map<[string, string]>((file: string) => [origin, file]),
-    );
+  let files: File[] = []
+  
+  for (const origin of origins) {
+    if ((await fs.lstat(origin.full)).isDirectory()) {
+      files.push(
+        ...globSync(origin.full)
+          .map((file: string) => {
+            return {
+              full: file,
+              relative: file.slice(origin.full.length + 1),
+            };
+          })
+      )
+    } else {
+      files.push(origin);
+    }
   }
 
   // Wait for substitutions to asynchronously occur on all files.
   await Promise.all(
-    files.map(([origin, file]) =>
-      applySubstitutions(path.join(origin, file), path.join(destinationDir, file), substitutions),
+    files.map(({full, relative}) => {
+      return applySubstitutions(path.join(full), path.join(destinationDir, relative), substitutions)
+      }
     ),
   );
 }

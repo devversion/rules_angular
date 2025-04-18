@@ -10,7 +10,7 @@ def ng_package(name, nested_packages = [], substitutions = [], tags = [], **kwar
 
     text_replace(
         name = "%s_apf_substituted" % name,
-        directory = ":%s_apf" % name,
+        srcs = [":%s_apf" % name],
         substitutions = substitutions,
     )
 
