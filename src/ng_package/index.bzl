@@ -21,6 +21,8 @@ def ng_package(name, nested_packages = [], substitutions = [], tags = [], **kwar
         ] + nested_packages,
         replace_prefixes = {
             "%s_apf_substituted" % name: "/",
+            "schematics/npm_package/": "schematics/",
+            "schematics/pkg/": "schematics/",
         },
         tags = tags,
         package = kwargs.get("package", None),
