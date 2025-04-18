@@ -215,7 +215,7 @@ def _angular_package_format_impl(ctx):
         # Collect ESM2022 and type definition source files from the dependency, including
         # transitive sources which are not directly defined in the entry-point. This is
         # necessary to allow for entry-points to rely on sub-targets (as a perf improvement).
-        unscoped_esm2022_depset = dep[JsInfo].sources
+        unscoped_esm2022_depset = dep[JsInfo].transitive_sources
         unscoped_types_depset = dep[JsInfo].transitive_types
 
         unscoped_all_entry_point_esm2022.append(unscoped_esm2022_depset)
