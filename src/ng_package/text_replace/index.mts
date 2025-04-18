@@ -24,7 +24,7 @@ async function applySubstitutions(
 
 /**
  * Regex for extracting values from status files.
- * 
+ *
  * Bazel's status files are understood to have the structure
  * STABLE_VALUE abc123
  * ANOTHER_VAL RandomNumber
@@ -39,7 +39,7 @@ async function parseStatusFile(filePath: string) {
     for (const match of Array.from(content.matchAll(statusFileRegex))) {
       const [_, key, value] = match;
       if (key && value) {
-        result.push([new RegExp(`{{${key}}}`, 'g'), value])
+        result.push([new RegExp(`{{${key}}}`, 'g'), value]);
       }
     }
   }
@@ -47,13 +47,13 @@ async function parseStatusFile(filePath: string) {
 }
 
 async function main(args: string[]) {
-  const [substitutionsArg, volatileFileRaw, stableFileRaw, originsRaw, destinationRaw] = (
+  const [substitutionsArg, volatileFileRaw, stableFileRaw, basePathRaw, destinationRaw] = (
     await fs.readFile(args[0], {encoding: 'utf-8'})
   )
     .split('\n')
     .map(line => line.replace(/^'(.*)'$/, '$1'));
-  /** List of files to propcess for substitution */
-  const origins = JSON.parse(originsRaw) as string[];
+  /** The basepath for all source files to be split from. */
+  const basePath = basePathRaw as string;
   /** The destination directory for the copied files with substitutions applied. */
   const destinationDir = destinationRaw as string;
   /** The path to the volitate status file from bazel. */
@@ -69,14 +69,11 @@ async function main(args: string[]) {
   substitutions.push(...(await parseStatusFile(stableFile)));
 
   /** Discovered file paths to apply substitutions to, split into the origin path and the file path based on that origin. */
-  let files: [string, string][] = [];
-
-  for (let origin of origins) {
-    files.push(
-      // Find all of the files in the origin directory and add them to the list.
-      ...globSync('**', {cwd: origin}).map<[string, string]>((file: string) => [origin, file]),
-    );
-  }
+  let files: [string, string][] = globSync('**', {
+    cwd: basePath,
+    // Ignoring the configuration file which will also be present within the directory at the basePath.
+    ignore: '*-0.params',
+  }).map<[string, string]>((file: string) => [basePath, file]);
 
   // Wait for substitutions to asynchronously occur on all files.
   await Promise.all(
