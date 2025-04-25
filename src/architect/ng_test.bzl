@@ -18,6 +18,7 @@ NPM_DEPS = lambda node_modules: ["/".join([node_modules, s]) for s in [
     "karma-jasmine",
     "karma-jasmine-html-reporter",
     "tslib",
+    "rxjs",
     "zone.js",
 ]]
 
