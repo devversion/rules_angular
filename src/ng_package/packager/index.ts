@@ -77,16 +77,32 @@ function main(args: string[]): void {
     esm2022Arg,
 
     // List of static files that should be copied into the package.
-    staticFilesArg,
+    staticLocationsArg,
 
     // List of side-effectful entry-points
     sideEffectEntryPointsArg,
   ] = params;
 
   const esm2022 = JSON.parse(esm2022Arg) as BazelFileInfo[];
-  const staticFiles = JSON.parse(staticFilesArg) as BazelFileInfo[];
+  const staticLocations = JSON.parse(staticLocationsArg) as BazelFileInfo[];
   const metadata = JSON.parse(metadataArg) as PackageMetadata;
   const sideEffectEntryPoints = JSON.parse(sideEffectEntryPointsArg) as string[];
+  const staticFiles: BazelFileInfo[] = [];
+
+  // Investigate each location provided, and expact directory locations into all of the files
+  // within the directory.
+  for (const location of staticLocations) {
+    if (fs.lstatSync(location.path).isDirectory()) {
+      staticFiles.push(...globSync("**", {cwd: location.path}).map(file => {
+        return {
+          shortPath: path.join(location.shortPath, file),
+          path: path.join(location.path, file),
+        }
+      }));
+    } else {
+      staticFiles.push(location);
+    }
+  }
 
   if (readmeMd) {
     copyFile(readmeMd, 'README.md');
