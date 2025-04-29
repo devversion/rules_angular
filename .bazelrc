@@ -1,6 +1,8 @@
 common --@aspect_rules_ts//ts:skipLibCheck=always
 common --@aspect_rules_ts//ts:default_to_tsc_transpiler
 
+build --symlink_prefix=dist
+
 # For remote testing
 # -----
 
