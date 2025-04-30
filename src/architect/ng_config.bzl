@@ -22,7 +22,7 @@ JQ_DIST_REPLACE_ANGULAR = """
     .value.architect.test.options.preserveSymlinks = true
     |
     if .value.projectType == "application" then
-      .value.architect.build.options.outputPath = .value.root + "/dist"
+      .value.architect.build.options.outputPath = "./" + .value.root + "/dist"
     else
       .
     end
