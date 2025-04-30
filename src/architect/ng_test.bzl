@@ -9,8 +9,9 @@ TEST_CONFIG = [
 ]
 
 NPM_DEPS = lambda node_modules: ["/".join([node_modules, s]) for s in [
-    "@angular", # Take all of them, since the list varies across angular versions
+    "@angular",  # Take all of them, since the list varies across angular versions
     "@types/jasmine",
+    "@types/node",
     "jasmine-core",
     "karma-chrome-launcher",
     "karma-coverage",
@@ -21,7 +22,7 @@ NPM_DEPS = lambda node_modules: ["/".join([node_modules, s]) for s in [
     "zone.js",
 ]]
 
-def ng_test(name, node_modules, ng_config, project_name = None, srcs = [], deps = [], **kwargs):
+def ng_test(name, node_modules, ng_config, args = [], project_name = None, srcs = [], deps = [], **kwargs):
     """
     Bazel macro for compiling an NG library project.
 
@@ -29,6 +30,7 @@ def ng_test(name, node_modules, ng_config, project_name = None, srcs = [], deps 
       name: the rule name
       node_modules: users installed and linked angular dependencies
       srcs: list of labels of source files to include
+      args: Additional command line flags to be passed to `ng test`.
       project_name: the Angular CLI project name, defaults to current directory name
       deps: additional dependencies for tests
       ng_config: root configurations (angular.json, tsconfig.json)
@@ -42,12 +44,10 @@ def ng_test(name, node_modules, ng_config, project_name = None, srcs = [], deps 
     js_test(
         name = name,
         chdir = native.package_name(),
-        args = ["test", project_name, "--no-watch"],
+        args = ["test", project_name, "--no-watch"] + args,
         entry_point = ng_entry_point(name, node_modules),
         data = srcs + deps + TEST_CONFIG + [
             ng_config,
-            ":ng-package",
         ],
-        log_level = "debug",
         **kwargs
     )
