@@ -16,7 +16,15 @@ NPM_DEPS = lambda node_modules: ["/".join([node_modules, s]) for s in [
     "zone.js",
 ]]
 
-def ng_application(name, node_modules, ng_config, project_name = None, srcs = [], deps = [], **kwargs):
+def ng_application(
+        name,
+        node_modules,
+        ng_config,
+        project_name = None,
+        args = [],
+        srcs = [],
+        deps = [],
+        **kwargs):
     """
     Bazel macro for compiling an NG application project. Creates {name}, {name}.serve targets.
 
@@ -24,6 +32,7 @@ def ng_application(name, node_modules, ng_config, project_name = None, srcs = []
       name: the rule name
       node_modules: users installed and linked angular dependencies
       project_name: the Angular CLI project name, to the rule name
+      args: Extra arguments to pass to `ng build`.
       srcs: application source files: typescript, HTML, and styles
       ng_config: angular workspace root configs
       deps: dependencies of the application, typically ng_library rules
@@ -38,7 +47,7 @@ def ng_application(name, node_modules, ng_config, project_name = None, srcs = []
     js_run_binary(
         name = name,
         chdir = native.package_name(),
-        args = ["build", project_name],
+        args = ["build", project_name] + args,
         out_dirs = ["dist"],
         tool = tool,
         srcs = srcs + deps,
