@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import {ProgramDescriptor} from './program_descriptor.mjs';
 import assert from 'assert';
-import {TsStructureIsReused} from './struture_reused.mjs';
+import {TsStructureIsReused} from './structure_reused.mjs';
 
 export class VanillaTsProgram extends ProgramDescriptor {
   private _tsProgram: ts.Program | null = null;

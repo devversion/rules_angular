@@ -11,7 +11,7 @@ import {FileCache} from './file_cache/file_cache.mjs';
 import {WorkerSandboxFileSystem} from './file_system.mjs';
 import {diffWorkerInputsForModifiedResources} from './modified_resources.mjs';
 import {AngularProgram} from './program_abstractions/ngtsc.mjs';
-import {TsStructureIsReused} from './program_abstractions/struture_reused.mjs';
+import {TsStructureIsReused} from './program_abstractions/structure_reused.mjs';
 import {VanillaTsProgram} from './program_abstractions/vanilla_ts.mjs';
 import {ProgramCache, WorkerProgramCacheEntry} from './program_cache.mjs';
 import {WorkRequest} from './protocol/worker.cjs';
