@@ -1,6 +1,6 @@
 import * as ngtsc from '@angular/compiler-cli';
 import ts from 'typescript';
-import {TsStructureIsReused} from './struture_reused.mjs';
+import {TsStructureIsReused} from './structure_reused.mjs';
 
 export abstract class ProgramDescriptor {
   constructor(
