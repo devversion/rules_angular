@@ -9,14 +9,12 @@
   "author": "",
   "license": "ISC",
   "pnpm": {
-    "onlyBuiltDependencies": [],
-    "patchedDependencies": {
-      "@angular/compiler-cli@19.0.1": "patches/@angular__compiler-cli.patch"
-    }
+    "onlyBuiltDependencies": []
   },
   "devDependencies": {
-    "@angular/compiler-cli": "^19.0.1",
+    "@angular/compiler": "19.2.9",
     "@angular/core": "^19.0.1",
+    "@angular/compiler-cli": "19.2.9",
     "@bazel/buildifier": "^7.3.1",
     "@rollup/plugin-commonjs": "^28.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
@@ -30,7 +28,7 @@
     "rollup": "^4.27.4",
     "rollup-plugin-dts": "6.1.1",
     "tinyglobby": "0.2.12",
-    "typescript": "5.6.3"
+    "typescript": "5.8.3"
   },
   "dependencies": {
     "rollup-plugin-sourcemaps2": "^0.5.0"

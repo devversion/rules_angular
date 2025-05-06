@@ -2,8 +2,7 @@ import {Volume} from 'memfs';
 import fs from 'fs';
 import path from 'path/posix';
 import nativeSysPath from 'path';
-import * as ngtsc from '@angular/compiler-cli';
-import {AbsoluteFsPath} from '@angular/compiler-cli';
+import {AbsoluteFsPath, PathSegment, FileStats} from './angular_foundation_utils.mjs';
 import {BazelSafeFilesystem} from './bazel_safe_filesystem.mjs';
 import {execrootDiskPath} from './constants.mjs';
 
@@ -32,25 +31,25 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
 
   // Never resolve using the real `process.cwd()`. We are in a virtual FS where
   // the `bazel` bin directory serves as our root via `/`.
-  resolve(...segments: string[]): ngtsc.AbsoluteFsPath {
-    return path.resolve(this._virtualCwd, ...segments) as ngtsc.AbsoluteFsPath;
+  resolve(...segments: string[]): AbsoluteFsPath {
+    return path.resolve(this._virtualCwd, ...segments) as AbsoluteFsPath;
   }
 
-  pwd(): ngtsc.AbsoluteFsPath {
+  pwd(): AbsoluteFsPath {
     // The `ts_project` rules passes options like `--project` relative to the bazel-bin,
     // so we will mimic the execution running with this as working directory.
     return this._virtualCwd;
   }
 
-  readdir(path: ngtsc.AbsoluteFsPath): ngtsc.PathSegment[] {
-    return this._vol.readdirSync(path) as ngtsc.PathSegment[];
+  readdir(path: AbsoluteFsPath): PathSegment[] {
+    return this._vol.readdirSync(path) as PathSegment[];
   }
 
-  stat(path: ngtsc.AbsoluteFsPath): ngtsc.FileStats {
+  stat(path: AbsoluteFsPath): FileStats {
     return this._vol.statSync(path);
   }
 
-  lstat(path: ngtsc.AbsoluteFsPath): ngtsc.FileStats {
+  lstat(path: AbsoluteFsPath): FileStats {
     return this._vol.lstatSync(path);
   }
 
@@ -80,7 +79,7 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
     }
   }
 
-  readFile(filePath: ngtsc.AbsoluteFsPath): string {
+  readFile(filePath: AbsoluteFsPath): string {
     // TODO: guard bazel inputs
     return fs.readFileSync(this.toDiskPath(filePath), {
       encoding: 'utf8',
@@ -88,7 +87,7 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
   }
 
   writeFile(
-    path: ngtsc.AbsoluteFsPath,
+    path: AbsoluteFsPath,
     data: string | Uint8Array,
     exclusive?: boolean | undefined,
   ): void {
@@ -100,7 +99,7 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
     fs.mkdirSync(this.toDiskPath(path), {recursive: true});
   }
 
-  exists(filePath: ngtsc.AbsoluteFsPath): boolean {
+  exists(filePath: AbsoluteFsPath): boolean {
     return this._vol.existsSync(filePath);
   }
 

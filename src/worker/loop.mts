@@ -1,20 +1,29 @@
-import * as ngtsc from '@angular/compiler-cli';
 import assert from 'assert';
 import crypto from 'crypto';
 import stringify from 'json-stable-stringify';
 import ts from 'typescript';
 import {createCancellationToken} from './cancellation_token.mjs';
-import {createBaseCompilerHost} from './compiler_host_base.mjs';
+import {AngularHostFactoryFn, createBaseCompilerHost} from './compiler_host_base.mjs';
 import {createCacheCompilerHost} from './compiler_host_cached.mjs';
-import {debugMode, isVanillaTsCompilation} from './constants.mjs';
+import {debugMode} from './constants.mjs';
 import {FileCache} from './file_cache/file_cache.mjs';
 import {WorkerSandboxFileSystem} from './file_system.mjs';
 import {diffWorkerInputsForModifiedResources} from './modified_resources.mjs';
-import {AngularProgram} from './program_abstractions/ngtsc.mjs';
 import {TsStructureIsReused} from './program_abstractions/structure_reused.mjs';
 import {VanillaTsProgram} from './program_abstractions/vanilla_ts.mjs';
 import {ProgramCache, WorkerProgramCacheEntry} from './program_cache.mjs';
 import {WorkRequest} from './protocol/worker.cjs';
+import {
+  AbsoluteFsPath,
+  NodeJSFileSystem,
+  readConfiguration,
+  FileSystem,
+  setFileSystem,
+} from './angular_foundation_utils.mjs';
+import {
+  ProgramDescriptor,
+  ProgramDescriptorCtor,
+} from './program_abstractions/program_descriptor.mjs';
 
 // Used for debug counting.
 let buildCount = 0;
@@ -27,6 +36,11 @@ const tsOptionsSafeToChangeForReuse = Object.keys({
   rootDir: '',
 } as ts.CompilerOptions);
 
+export interface OptionalAngular {
+  angularHostFactoryFn: AngularHostFactoryFn;
+  programCtor: ProgramDescriptorCtor;
+}
+
 export async function executeBuild(
   args: string[],
   worker: {
@@ -34,8 +48,9 @@ export async function executeBuild(
     fileCache: FileCache;
     programCache: ProgramCache;
   } | null,
+  optionalAngular?: OptionalAngular,
 ) {
-  let workerInputs: Map<ngtsc.AbsoluteFsPath, Uint8Array> | null = null;
+  let workerInputs: Map<AbsoluteFsPath, Uint8Array> | null = null;
 
   // In worker mode, we know the inputs and can compute them. This allows
   // us to construct a virtual file system to emulate sandboxing.
@@ -43,7 +58,7 @@ export async function executeBuild(
     workerInputs = new Map(
       worker.req.inputs
         // Worker input paths are rooted in our virtual FS at execroot.
-        .map(i => [`/${i.path}` as ngtsc.AbsoluteFsPath, i.digest]),
+        .map(i => [`/${i.path}` as AbsoluteFsPath, i.digest]),
     );
   }
 
@@ -55,15 +70,15 @@ export async function executeBuild(
   const fs =
     workerSortedInputFileNames !== null
       ? new WorkerSandboxFileSystem(workerSortedInputFileNames)
-      : new ngtsc.NodeJSFileSystem();
+      : new NodeJSFileSystem();
 
   // Note: This is needed because functions like `readConfiguration` do not properly
   // re-use the passed `fs`, but call `getFileSystem`.
-  ngtsc.setFileSystem(fs);
+  setFileSystem(fs);
 
   // Populate options from command line arguments.
   const {options: cmdOptions} = ts.parseCommandLine(args);
-  const parsedConfig = ngtsc.readConfiguration(cmdOptions.project!, cmdOptions, fs);
+  const parsedConfig = readConfiguration(cmdOptions.project!, cmdOptions, fs);
   const options = parsedConfig.options;
 
   // Build a worker hash by concatenating a set of key values delimited by an `@` character.
@@ -102,17 +117,23 @@ export async function executeBuild(
     return 1;
   }
 
-  let host: ngtsc.CompilerHost;
+  let host: ts.CompilerHost;
 
   // In workers, use a compiler host that leverages the persistent
   // file cache. Otherwise, fall back to an uncached host.
   if (worker !== null) {
-    host = createCacheCompilerHost(options, worker.fileCache, fs, modifiedResourceFilePaths);
+    host = createCacheCompilerHost(
+      options,
+      worker.fileCache,
+      fs,
+      modifiedResourceFilePaths,
+      optionalAngular ?? null,
+    );
   } else {
-    host = createBaseCompilerHost(options, fs);
+    host = createBaseCompilerHost(options, fs, optionalAngular?.angularHostFactoryFn ?? null);
   }
 
-  const programDescriptor = isVanillaTsCompilation ? VanillaTsProgram : AngularProgram;
+  const programDescriptor = optionalAngular?.programCtor ?? VanillaTsProgram;
   const program = new programDescriptor(parsedConfig.rootNames, options, host, existing?.program);
 
   if (workerInputs !== null) {
@@ -138,7 +159,7 @@ export async function executeBuild(
   if (debugMode) {
     console.error(`Worker re-use, number of previous runs: ${buildCount++}`);
     console.error(`Re-using program & host: ${!!existing}`);
-    console.error(`Vanilla TS: ${isVanillaTsCompilation}`);
+    console.error(`Vanilla TS: ${optionalAngular === undefined}`);
     console.error(`Modified resources: ${modifiedResourceFilePaths?.size}`);
     console.error('Structure reused', TsStructureIsReused[program.isStructureReused()]);
   }

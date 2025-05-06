@@ -42,6 +42,6 @@ def ng_project(
         # from `rules_ts` is incompatible with TS5+ and abandoned. We need
         # worker for efficient, fast DX and avoiding Windows no-sandbox issues.
         supports_workers = 1,
-        tsc_worker = "@rules_angular//src/worker:worker_angular",
+        tsc_worker = "@rules_angular//src/worker/angular:bin",
         **kwargs
     )
