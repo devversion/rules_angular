@@ -1,5 +1,4 @@
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
-load("@aspect_rules_rollup//rollup:defs.bzl", "rollup")
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("//src/private:symlink_package.bzl", "symlink_package")
@@ -52,19 +51,4 @@ js_binary(
     data = [":worker_lib"],
     entry_point = ":index.mjs",
     fixed_args = ["--vanilla-ts"],
-)
-
-rollup(
-    name = "bundle",
-    srcs = [":copy_worker_js"],
-    config_file = "rollup.config.mjs",
-    entry_point = ":index.mjs",
-    format = "esm",
-    node_modules = "//:node_modules",
-    deps = [
-        ":worker_lib",
-        "//:node_modules/@rollup/plugin-commonjs",
-        "//:node_modules/@rollup/plugin-node-resolve",
-        "//:node_modules/@rollup/plugin-terser",
-    ],
 )
