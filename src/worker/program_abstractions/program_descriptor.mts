@@ -1,12 +1,15 @@
-import * as ngtsc from '@angular/compiler-cli';
 import ts from 'typescript';
 import {TsStructureIsReused} from './structure_reused.mjs';
+
+export interface ProgramDescriptorCtor {
+  new (...args: ConstructorParameters<typeof ProgramDescriptor>): ProgramDescriptor;
+}
 
 export abstract class ProgramDescriptor {
   constructor(
     protected rootNames: string[],
-    protected options: ngtsc.CompilerOptions,
-    protected host: ngtsc.CompilerHost,
+    protected options: ts.CompilerOptions,
+    protected host: ts.CompilerHost,
     protected oldProgram: ProgramDescriptor | undefined,
   ) {}
 

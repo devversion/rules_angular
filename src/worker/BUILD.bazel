@@ -1,24 +1,45 @@
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
-load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_config", "ts_project")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("//src/private:symlink_package.bzl", "symlink_package")
+load(":worker_mode.bzl", "is_angular_worker_setting")
 
 package(default_visibility = ["//visibility:public"])
-
-symlink_package(
-    name = "node_modules/@angular/compiler-cli",
-    src = "@rules_angular_configurable_deps//:angular_compiler_cli",
-)
 
 symlink_package(
     name = "node_modules/typescript",
     src = "@rules_angular_configurable_deps//:typescript",
 )
 
+symlink_package(
+    name = "node_modules/@angular/compiler-cli",
+    src = "@rules_angular_configurable_deps//:angular_compiler_cli",
+)
+
+# ---
+
+is_angular_worker_setting(
+    name = "is_angular_worker_flag",
+    build_setting_default = False,
+)
+
+config_setting(
+    name = "is_angular_worker",
+    flag_values = {
+        ":is_angular_worker_flag": "true",
+    },
+)
+
 copy_file(
     name = "copy_worker_js",
     src = "@aspect_rules_js//js/private/worker:worker.js",
     out = "protocol/worker.cjs",
+)
+
+ts_config(
+    name = "tsconfig",
+    src = "tsconfig.json",
+    deps = ["//:node_modules/@types/node"],
 )
 
 ts_project(
@@ -29,26 +50,25 @@ ts_project(
     ]),
     data = [":copy_worker_js"],
     declaration = True,
-    tsconfig = "tsconfig.json",
+    tsconfig = "tsconfig",
     deps = [
-        ":node_modules/@angular/compiler-cli",
         ":node_modules/typescript",
-        "//:node_modules/@types/node",
         "//:node_modules/json-stable-stringify",
         "//:node_modules/lru-cache",
         "//:node_modules/memfs",
-    ],
-)
-
-js_binary(
-    name = "worker_angular",
-    data = [":worker_lib"],
-    entry_point = ":index.mjs",
+    ] + select({
+        # NOTE: The Angular compiler in this target is not affecting any compilation
+        # output, but it's still necessary for some foundational utils like virtual FS.
+        # We want choose the user-provided compiler from HEAD if available to avoid conflicts
+        # with a transitive TS version brought in from the compiler-cli npm package.
+        ":is_angular_worker": [":node_modules/@angular/compiler-cli"],  # user-configured
+        "//conditions:default": ["//:node_modules/@angular/compiler-cli"],  # from npm
+    }),
 )
 
 js_binary(
     name = "worker_vanilla_ts",
     data = [":worker_lib"],
-    entry_point = ":index.mjs",
+    entry_point = ":main_vanilla.mjs",
     fixed_args = ["--vanilla-ts"],
 )

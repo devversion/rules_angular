@@ -6,7 +6,6 @@ def rules_angular_step1():
         npmrc = "//:.npmrc",
         data = [
             "@rules_angular//:package.json",
-            "@rules_angular//:patches/@angular__compiler-cli.patch",
         ],
         pnpm_lock = "@rules_angular//:pnpm-lock.yaml",
     )

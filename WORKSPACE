@@ -53,14 +53,3 @@ http_archive(
     strip_prefix = "dev-infra-9ad44d7add69b53cec32d6486e9e8a83e7ec6622",
     url = "https://github.com/angular/dev-infra/archive/9ad44d7add69b53cec32d6486e9e8a83e7ec6622.zip",
 )
-
-http_archive(
-    name = "aspect_rules_rollup",
-    sha256 = "c4062681968f5dcd3ce01e09e4ba73670c064744a7046211763e17c98ab8396e",
-    strip_prefix = "rules_rollup-2.0.0",
-    url = "https://github.com/aspect-build/rules_rollup/releases/download/v2.0.0/rules_rollup-v2.0.0.tar.gz",
-)
-
-load("@aspect_rules_rollup//rollup:dependencies.bzl", "rules_rollup_dependencies")
-
-rules_rollup_dependencies()

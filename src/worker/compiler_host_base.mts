@@ -1,11 +1,21 @@
-import * as ngtsc from '@angular/compiler-cli';
+import {
+  FileSystem,
+  AngularCompilerHostForVanillaCompilations,
+} from './angular_foundation_utils.mjs';
 import ts from 'typescript';
 
-export function createBaseCompilerHost(
+export type AngularHostFactoryFn = (fs: FileSystem, options: ts.CompilerOptions) => ts.CompilerHost;
+
+export function createBaseCompilerHost<Host extends ts.CompilerHost>(
   options: ts.CompilerOptions,
-  fs: ngtsc.FileSystem,
-): ngtsc.CompilerHost {
-  const base: ngtsc.CompilerHost = new ngtsc.NgtscCompilerHost(fs, options);
+  fs: FileSystem,
+  angularFactoryFn: AngularHostFactoryFn | null,
+): ts.CompilerHost {
+  const base: ts.CompilerHost = angularFactoryFn
+    ? angularFactoryFn(fs, options)
+    : // Even for vanilla compilations, we want to use a FS-respecting host. We can
+      // just use the one from npm safely then.
+      new AngularCompilerHostForVanillaCompilations(fs, options);
 
   // Support `--traceResolution`.
   base.trace = output => console.error(output);

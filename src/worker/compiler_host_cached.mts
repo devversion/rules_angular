@@ -1,18 +1,20 @@
 import ts from 'typescript';
 import {FileCache} from './file_cache/file_cache.mjs';
-import * as ngtsc from '@angular/compiler-cli';
 import * as nodeFs from 'node:fs';
 import module from 'module';
 import path from 'node:path';
 import {createBaseCompilerHost} from './compiler_host_base.mjs';
+import {AngularResourceHost, FileSystem} from './angular_foundation_utils.mjs';
+import {OptionalAngular} from './loop.mjs';
 
 export function createCacheCompilerHost(
   options: ts.CompilerOptions,
   cache: FileCache,
-  fs: ngtsc.FileSystem,
+  fs: FileSystem,
   modifiedResourceFilePaths: Set<string> | null,
-): ngtsc.CompilerHost {
-  const base = createBaseCompilerHost(options, fs);
+  optionalAngular: OptionalAngular | null,
+): ts.CompilerHost {
+  const base = createBaseCompilerHost(options, fs, optionalAngular?.angularHostFactoryFn ?? null);
   const originalGetSourceFile = base.getSourceFile;
   const defaultLibLocation = base.getDefaultLibLocation?.();
 
@@ -25,10 +27,10 @@ export function createCacheCompilerHost(
   // are able to detect physically changed TS files, but not resource files. This is why
   // we need to tell ngtsc about e.g. modified template files for re-used build requests.
   if (modifiedResourceFilePaths !== null) {
-    base.getModifiedResourceFiles = () => modifiedResourceFilePaths;
+    (base as AngularResourceHost).getModifiedResourceFiles = () => modifiedResourceFilePaths;
   }
 
-  base.readResource = fileName => {
+  (base as AngularResourceHost).readResource = fileName => {
     // Used cached source file if it's still valid.
     const cachedFile = cache.getCache(fileName);
     if (cachedFile !== undefined && typeof cachedFile === 'string') {

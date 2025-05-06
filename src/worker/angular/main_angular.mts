@@ -1,8 +1,10 @@
-import * as ts from 'typescript';
-import {ProgramDescriptor} from './program_descriptor.mjs';
 import * as ngtsc from '@angular/compiler-cli';
+
+import {bootWorker} from '../worker.mjs';
 import assert from 'assert';
-import {TsStructureIsReused} from './structure_reused.mjs';
+import ts from 'typescript';
+import {ProgramDescriptor} from '../program_abstractions/program_descriptor.mjs';
+import {TsStructureIsReused} from '../program_abstractions/structure_reused.mjs';
 
 export class AngularProgram extends ProgramDescriptor {
   private _ngtscProgram: ngtsc.NgtscProgram | null = null;
@@ -42,3 +44,9 @@ export class AngularProgram extends ProgramDescriptor {
     return (this._ngtscProgram?.getTsProgram() as any)['structureIsReused'];
   }
 }
+
+// Boot up worker.
+await bootWorker({
+  angularHostFactoryFn: (fs, options) => new ngtsc.NgtscCompilerHost(fs, options),
+  programCtor: AngularProgram,
+});
