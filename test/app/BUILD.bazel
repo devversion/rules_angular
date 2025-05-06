@@ -1,12 +1,10 @@
-load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("//src/ng_package:angular_package_format.bzl", "angular_package_format")
+load("//src/ng_project:index.bzl", "ng_project")
 
-ts_project(
+ng_project(
     name = "app",
     srcs = glob(["**/*.ts"]) + ["template.html"],
     declaration = True,
-    supports_workers = 1,
-    tsc_worker = "//src/worker/angular:bin",
     tsconfig = "tsconfig.json",
     visibility = [":__subpackages__"],
     deps = ["//:node_modules/@angular/core"],
