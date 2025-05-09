@@ -1,5 +1,4 @@
 load("@aspect_rules_js//js:providers.bzl", "JsInfo", "js_info")
-load("@aspect_rules_js//npm:providers.bzl", "NpmPackageInfo")
 
 DOC = """
 Rule that symlinks a `//:node_modules/<pkg>` into another `node_modules` folder.
@@ -17,13 +16,9 @@ The test environments will not have the execroot `node_modules`, or user workspa
 def _symlink_impl(ctx):
     src = ctx.attr.src
 
-    has_js_info = JsInfo in src
-    if has_js_info:
-        src_dir = src[JsInfo].npm_sources.to_list()[-1]
-    else:
-        src_dir = src[NpmPackageInfo].src
-
-    destination = ctx.actions.declare_file(ctx.attr.name)
+    store_info = src[JsInfo].npm_package_store_infos.to_list()[0]
+    src_dir = store_info.package_store_directory
+    destination = ctx.actions.declare_directory(ctx.attr.name)
 
     ctx.actions.symlink(
         output = destination,
@@ -42,14 +37,14 @@ def _symlink_impl(ctx):
         ),
         js_info(
             target = ctx.label,
-            sources = src[JsInfo].sources if has_js_info else None,
-            types = src[JsInfo].types if has_js_info else None,
-            transitive_sources = src[JsInfo].transitive_sources if has_js_info else None,
-            transitive_types = src[JsInfo].transitive_types if has_js_info else None,
-            npm_package_store_infos = src[JsInfo].npm_package_store_infos if has_js_info else None,
+            sources = src[JsInfo].sources,
+            types = src[JsInfo].types,
+            transitive_sources = src[JsInfo].transitive_sources,
+            transitive_types = src[JsInfo].transitive_types,
+            npm_package_store_infos = src[JsInfo].npm_package_store_infos,
             npm_sources = depset(
                 [destination],
-                transitive = [src[JsInfo].npm_sources] if has_js_info else [depset([src_dir])],
+                transitive = [src[JsInfo].npm_sources],
             ),
         ),
     ]
