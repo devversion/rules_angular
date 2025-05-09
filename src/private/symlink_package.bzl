@@ -1,6 +1,5 @@
-load("@aspect_bazel_lib//lib:paths.bzl", "relative_file")
 load("@aspect_rules_js//js:providers.bzl", "JsInfo", "js_info")
-load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@aspect_rules_js//npm:providers.bzl", "NpmPackageInfo")
 
 DOC = """
 Rule that symlinks a `//:node_modules/<pkg>` into another `node_modules` folder.
@@ -16,23 +15,22 @@ The test environments will not have the execroot `node_modules`, or user workspa
 """
 
 def _symlink_impl(ctx):
-    destination = ctx.actions.declare_symlink(ctx.attr.name)
-
     src = ctx.attr.src
 
-    if not src.label.name.startswith("node_modules/"):
-        fail("%s is not a linked npm package" % src.label)
+    has_js_info = JsInfo in src
+    if has_js_info:
+        src_dir = src[JsInfo].npm_sources.to_list()[-1]
+    else:
+        src_dir = src[NpmPackageInfo].src
 
-    src_dir = src[JsInfo].npm_sources.to_list()[-1]
-    src_workspace_name = ctx.workspace_name if src.label.workspace_name == "" else src.label.workspace_name
-    src_path = paths.join(src_workspace_name, src_dir.short_path)
+    destination = ctx.actions.declare_file(ctx.attr.name)
 
     ctx.actions.symlink(
         output = destination,
         # TODO(devversion): Revisit this with Bazel 7/8 and their new output layout!
         # This currently generates compatible relative paths for `runfiles`, but in build
         # tree this is unresolvable (but not a problem; but conceptually weird).
-        target_path = relative_file(src_path, destination.short_path),
+        target_file = src_dir,
     )
 
     runfiles = ctx.runfiles(files = [destination])
@@ -44,12 +42,15 @@ def _symlink_impl(ctx):
         ),
         js_info(
             target = ctx.label,
-            sources = src[JsInfo].sources,
-            types = src[JsInfo].types,
-            transitive_sources = src[JsInfo].transitive_sources,
-            transitive_types = src[JsInfo].transitive_types,
-            npm_package_store_infos = src[JsInfo].npm_package_store_infos,
-            npm_sources = depset([destination], transitive = [src[JsInfo].npm_sources]),
+            sources = src[JsInfo].sources if has_js_info else None,
+            types = src[JsInfo].types if has_js_info else None,
+            transitive_sources = src[JsInfo].transitive_sources if has_js_info else None,
+            transitive_types = src[JsInfo].transitive_types if has_js_info else None,
+            npm_package_store_infos = src[JsInfo].npm_package_store_infos if has_js_info else None,
+            npm_sources = depset(
+                [destination],
+                transitive = [src[JsInfo].npm_sources] if has_js_info else [depset([src_dir])],
+            ),
         ),
     ]
 

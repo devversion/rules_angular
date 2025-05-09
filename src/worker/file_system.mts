@@ -118,7 +118,15 @@ export class WorkerSandboxFileSystem extends BazelSafeFilesystem {
   }
 
   private diskReadlink(filePath: AbsoluteFsPath): AbsoluteFsPath {
-    return this.fromDiskPath(fs.readlinkSync(this.toDiskPath(filePath)));
+    const linkFsPath = this.toDiskPath(filePath);
+    let targetPath = fs.readlinkSync(linkFsPath);
+
+    // Convert relative links to absolute disk paths.
+    if (!path.isAbsolute(targetPath)) {
+      targetPath = path.join(path.dirname(linkFsPath), targetPath);
+    }
+
+    return this.fromDiskPath(targetPath);
   }
 
   private toDiskPath(filePath: AbsoluteFsPath): string {
