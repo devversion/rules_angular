@@ -5,7 +5,7 @@ load("//src/ng_package/text_replace:index.bzl", "text_replace")
 def ng_package(
     name,
     nested_packages = [],
-    substitutions = [],
+    substitutions = {},
     tags = [],
     replace_prefixes = {},
     **kwargs):
