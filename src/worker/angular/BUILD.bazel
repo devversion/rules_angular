@@ -20,13 +20,4 @@ js_binary(
     name = "bin",
     data = [":angular_lib"],
     entry_point = ":main_angular.mjs",
-    env = {
-        # NOTE: We disable node FS patches here because symlinks created
-        # by `ctx.actions.symlink` with `target_file` end up resolving outside
-        # of runtime `.runfiles` directories into the sandbox execroot. The FS
-        # patches would block this jump from one root to the other root, but that's
-        # exactly what we need here so that transitive dependencies of e.g. `@angular/compiler-cli`
-        # are resolved based on the configured compiler package.
-        "JS_BINARY__PATCH_NODE_FS": "0",
-    },
 )
