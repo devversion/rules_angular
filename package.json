@@ -12,9 +12,13 @@
     "onlyBuiltDependencies": []
   },
   "devDependencies": {
-    "@angular/compiler": "19.2.9",
-    "@angular/core": "^19.0.1",
-    "@angular/compiler-cli": "19.2.9",
+    "@angular/build": "20.0.0-rc.1",
+    "@angular/cli": "20.0.0-rc.1",
+    "@angular/common": "20.0.0-rc.1",
+    "@angular/compiler": "20.0.0-rc.1",
+    "@angular/compiler-cli": "20.0.0-rc.1",
+    "@angular/core": "20.0.0-rc.1",
+    "@angular/platform-browser": "20.0.0-rc.1",
     "@bazel/buildifier": "^7.3.1",
     "@rollup/plugin-commonjs": "^28.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
@@ -27,8 +31,11 @@
     "prettier": "^3.4.1",
     "rollup": "^4.27.4",
     "rollup-plugin-dts": "6.1.1",
+    "rxjs": "^7.8.2",
     "tinyglobby": "0.2.12",
-    "typescript": "5.8.3"
+    "tslib": "^2.8.1",
+    "typescript": "5.8.3",
+    "zone.js": "^0.15.0"
   },
   "dependencies": {
     "rollup-plugin-sourcemaps2": "^0.5.0"
