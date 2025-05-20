@@ -1,0 +1,20 @@
+load("@aspect_bazel_lib//lib:run_binary.bzl", "run_binary")
+
+sh_binary(
+    name = "generate",
+    srcs = ["generate.sh"],
+    data = ["//src/optimization:ng_cli_tool"],
+)
+
+run_binary(
+    name = "boilerplate",
+    env = {
+        "BAZEL_BINDIR": "$(BINDIR)",
+    },
+    mnemonic = "GenerateCLIBoilerplate",
+    out_dirs = ["boilerplate"],
+    progress_message = "Generating Angular CLI boilerplate: %{label}",
+    tool = ":generate",
+    use_default_shell_env = True,
+    visibility = ["//visibility:public"],
+)
