@@ -13,5 +13,8 @@ ng_project(
 angular_package_format(
     name = "pkg",
     package = "test-123",
-    deps = [":app"],
+    deps = [
+        ":app",
+        "//test/app/plain_ts",
+    ],
 )
