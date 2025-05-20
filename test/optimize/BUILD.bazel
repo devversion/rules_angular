@@ -1,0 +1,6 @@
+load("//src/optimization:index.bzl", "optimize_angular_app")
+
+optimize_angular_app(
+    name = "optimize",
+    srcs = glob(["**/*.ts"]),
+)
