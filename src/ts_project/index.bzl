@@ -27,5 +27,9 @@ def ts_project(
         # worker for efficient, consistent and fast DX.
         supports_workers = 1,
         tsc_worker = "@rules_angular//src/worker:worker_vanilla_ts",
+        build_progress_message = select({
+            "@rules_angular//src/ng_project/config:partial_compilation_enabled": "Compiling TS (partial compilation): {label}",
+            "//conditions:default": "Compiling TS: {label}",
+        }),
         **kwargs
     )

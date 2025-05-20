@@ -1,12 +1,10 @@
-load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("//src/ts_project:index.bzl", "ts_project")
 
 ts_project(
     name = "tsconfig_override",
     srcs = glob(["**/*.ts"]),
     args = ["--sourceMap"],
     source_map = True,
-    supports_workers = 1,
-    tsc_worker = "//src/worker:worker_vanilla_ts",
     tsconfig = "tsconfig.json",
     validate = False,
     deps = ["//:node_modules/@angular/core"],

@@ -5,3 +5,10 @@ partial_compilation_flag(
     build_setting_default = False,
     visibility = ["//visibility:public"],
 )
+
+config_setting(
+    name = "partial_compilation_enabled",
+    flag_values = {
+        ":partial_compilation": "true",
+    },
+)

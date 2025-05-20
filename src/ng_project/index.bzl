@@ -43,5 +43,9 @@ def ng_project(
         # worker for efficient, fast DX and avoiding Windows no-sandbox issues.
         supports_workers = 1,
         tsc_worker = "@rules_angular//src/worker/angular:bin",
+        build_progress_message = select({
+            "@rules_angular//src/ng_project/config:partial_compilation_enabled": "Compiling Angular TS (partial compilation): {label}",
+            "//conditions:default": "Compiling Angular TS: {label}",
+        }),
         **kwargs
     )
