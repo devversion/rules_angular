@@ -42,7 +42,13 @@ def ng_application(
     deps = deps + NPM_DEPS(node_modules) + APPLICATION_CONFIG
     deps.append(ng_config)
     project_name = project_name if project_name else name
-    tool = ng_bin(name, node_modules)
+
+    ng_bin(
+        name = "_%s.ng_cli" % name,
+        node_modules = node_modules,
+    )
+
+    tool = ":_%s.ng_cli" % name
 
     js_run_binary(
         name = name,

@@ -47,12 +47,17 @@ def ng_library(name, node_modules, ng_config, project_name = None, srcs = [], de
         visibility = ["//visibility:private"],
     )
 
+    ng_bin(
+        name = "_%s.ng_cli" % name,
+        node_modules = node_modules,
+    )
+
     js_run_binary(
         name = build_target,
         chdir = native.package_name(),
         args = ["build", project_name],
         out_dirs = ["dist"],
-        tool = ng_bin(name, node_modules),
+        tool = ":_%s.ng_cli" % name,
         srcs = srcs + deps + NPM_DEPS(node_modules) + LIBRARY_CONFIG + [ng_config, "ng-package"],
         mnemonic = "NgBuild",
         visibility = ["//visibility:private"],
