@@ -10,6 +10,7 @@ run_binary(
     name = "boilerplate",
     env = {
         "BAZEL_BINDIR": "$(BINDIR)",
+        "OUT_DIR": "$(@)",
     },
     mnemonic = "GenerateCLIBoilerplate",
     out_dirs = ["boilerplate"],
