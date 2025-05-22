@@ -33,6 +33,9 @@ importers:
       '@angular/platform-browser':
         specifier: 20.0.0-rc.1
         version: 20.0.0-rc.1(@angular/common@20.0.0-rc.1(@angular/core@20.0.0-rc.1(@angular/compiler@20.0.0-rc.1)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.0.0-rc.1(@angular/compiler@20.0.0-rc.1)(rxjs@7.8.2)(zone.js@0.15.0))
+      '@bazel/bazelisk':
+        specifier: 1.26.0
+        version: 1.26.0
       '@bazel/buildifier':
         specifier: ^7.3.1
         version: 7.3.1
@@ -278,6 +281,10 @@ packages:
   '@babel/types@7.27.1':
     resolution: {integrity: sha512-+EzkxvLNfiUeKMgy/3luqfsCWFRXLb7U6wNQTk60tovuckwB15B191tJWvpp4HjiQWdJkCxO3Wbvc6jlk3Xb2Q==}
     engines: {node: '>=6.9.0'}
+
+  '@bazel/bazelisk@1.26.0':
+    resolution: {integrity: sha512-bTNcHdGyEQ9r7SczEYUa0gkEQhJo1ld2BjXI8fWBvsUeoHi03QpUs2HZgDbjjrpQFQqG2ZbO7ihZvH8MjhUTHw==}
+    hasBin: true
 
   '@bazel/buildifier@7.3.1':
     resolution: {integrity: sha512-qhSjryLo2uHeib/uLc8Yeh6SBisqdf9pPO79QPlyNO3Apc4g9J1Tir/52VdOo9czHTgSasbtOjfWJCPzMoCSIA==}
@@ -2707,6 +2714,8 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
+
+  '@bazel/bazelisk@1.26.0': {}
 
   '@bazel/buildifier@7.3.1': {}
 
