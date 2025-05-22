@@ -2,10 +2,14 @@ load("@aspect_bazel_lib//lib:run_binary.bzl", "run_binary")
 load("@aspect_rules_js//js:defs.bzl", "js_run_devserver")
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 
-def optimize_angular_app(name, srcs = [], deps = [], env = {}):
+def optimize_angular_app(name, srcs = [], deps = [], env = {}, include_zonejs = False):
     npm_package(
         name = "_%s_package" % name,
         srcs = srcs,
+        # Include everything matched, even outside of the current package.
+        # This allows for common utilities from e.g. the WORKSPACE root to be available.
+        include_srcs_packages = ["**"],
+        root_paths = [""],
     )
 
     run_binary(
@@ -13,6 +17,7 @@ def optimize_angular_app(name, srcs = [], deps = [], env = {}):
         tool = "@rules_angular//src/optimization:optimize",
         srcs = [
             ":_%s_package" % name,
+            "@yq_toolchains//:resolved_toolchain",
             "@rules_angular//src/optimization/boilerplate",
         ] + deps,
         out_dirs = ["%s_cli_execution" % name],
@@ -22,9 +27,13 @@ def optimize_angular_app(name, srcs = [], deps = [], env = {}):
         env = dict({
             "BAZEL_BINDIR": ".",
             "OUT_DIR": "$(@)",
+            "CURRENT_PACKAGE": native.package_name(),
             "BOILERPLATE_DIR": "$(execpath @rules_angular//src/optimization/boilerplate)",
             "INPUT_PACKAGE": "$(execpath :_%s_package)" % name,
+            "INCLUDE_ZONEJS": str(include_zonejs),
+            "YQ_BIN": "$(YQ_BIN)",
         }, **env),
+        toolchains = ["@yq_toolchains//:resolved_toolchain"],
     )
 
     npm_package(
