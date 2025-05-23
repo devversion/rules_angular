@@ -14,5 +14,5 @@ cp -Rf $INPUT_PACKAGE/* $OUT_DIR/src/
 
 # Start the prod build.
 cd $OUT_DIR
-$NG_CLI_TOOL build --preserve-symlinks=true --output-hashing=none --configuration=production
+$NG_CLI_TOOL build --preserve-symlinks --output-hashing=none --no-progress --no-index --configuration=production
 
