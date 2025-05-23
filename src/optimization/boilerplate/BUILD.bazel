@@ -8,19 +8,14 @@ sh_binary(
 
 run_binary(
     name = "boilerplate",
-    srcs = [
-        "@yq_toolchains//:resolved_toolchain",
-    ],
     env = {
         "BAZEL_BINDIR": "$(BINDIR)",
         "OUT_DIR": "$(@)",
-        "YQ_BIN": "$(YQ_BIN)",
     },
     mnemonic = "GenerateCLIBoilerplate",
     out_dirs = ["boilerplate"],
     progress_message = "Generating Angular CLI boilerplate: %{label}",
     tool = ":generate",
-    toolchains = ["@yq_toolchains//:resolved_toolchain"],
     use_default_shell_env = True,
     visibility = ["//visibility:public"],
 )
