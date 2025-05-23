@@ -5,6 +5,7 @@ load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 def optimize_angular_app(name, srcs = [], deps = [], env = {}, include_zonejs = False):
     npm_package(
         name = "_%s_package" % name,
+        tags = ["manual"],
         srcs = srcs,
         # Include everything matched, even outside of the current package.
         # This allows for common utilities from e.g. the WORKSPACE root to be available.
@@ -15,6 +16,7 @@ def optimize_angular_app(name, srcs = [], deps = [], env = {}, include_zonejs = 
     run_binary(
         name = "_%s_build" % name,
         tool = "@rules_angular//src/optimization:optimize",
+        tags = ["manual"],
         srcs = [
             ":_%s_package" % name,
             "@yq_toolchains//:resolved_toolchain",
@@ -48,6 +50,7 @@ def optimize_angular_app(name, srcs = [], deps = [], env = {}, include_zonejs = 
 
     js_run_devserver(
         name = name + ".serve",
+        tags = ["manual"],
         tool = "@rules_angular//src/optimization:ng_cli_tool",
         chdir = "%s/%s_cli_execution" % (native.package_name(), name),
         args = ["serve", "boilerplate"],
