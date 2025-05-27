@@ -34,6 +34,14 @@ $YQ_BIN -o=json "
    " \
    -i $OUT_DIR/angular.json
 
+# Disable budgets. The action should never fail on size increases / or larger apps.
+$YQ_BIN -o=json "del(.projects.boilerplate.architect.build.configurations.production.budgets)" -i $OUT_DIR/angular.json
+
+# Support for custom JQ config filters specified via Starlark.
+if [ "$JQ_CONFIG_FILTER" != "" ]; then
+   $YQ_BIN -o=json "$JQ_CONFIG_FILTER" -i $OUT_DIR/angular.json
+fi
+
 # If `zone.js` is not configured to be included, filter it out of the project.
 if [ "$INCLUDE_ZONEJS" == "False" ]; then
    $YQ_BIN -o=json \

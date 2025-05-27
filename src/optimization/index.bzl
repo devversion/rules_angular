@@ -2,7 +2,13 @@ load("@aspect_bazel_lib//lib:run_binary.bzl", "run_binary")
 load("@aspect_rules_js//js:defs.bzl", "js_run_devserver")
 load("@aspect_rules_js//npm:defs.bzl", "npm_package")
 
-def optimize_angular_app(name, srcs = [], deps = [], env = {}, include_zonejs = False):
+def optimize_angular_app(
+        name,
+        srcs = [],
+        deps = [],
+        env = {},
+        include_zonejs = False,
+        jq_config_filter = ""):
     npm_package(
         name = "_%s_package" % name,
         tags = ["manual"],
@@ -32,6 +38,7 @@ def optimize_angular_app(name, srcs = [], deps = [], env = {}, include_zonejs = 
             "CURRENT_PACKAGE": native.package_name(),
             "BOILERPLATE_DIR": "$(execpath @rules_angular//src/optimization/boilerplate)",
             "INPUT_PACKAGE": "$(execpath :_%s_package)" % name,
+            "JQ_CONFIG_FILTER": jq_config_filter,
             "INCLUDE_ZONEJS": str(include_zonejs),
             "YQ_BIN": "$(YQ_BIN)",
         }, **env),
