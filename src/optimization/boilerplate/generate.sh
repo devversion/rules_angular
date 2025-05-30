@@ -26,5 +26,5 @@ suppress_on_success $NG_CLI_TOOL new boilerplate --skip-install --skip-git --ski
 (cd boilerplate && $NG_CLI_TOOL cache off && $NG_CLI_TOOL analytics off) &> /dev/null
 
 # remove boilerplate app component code
-rm boilerplate/src/app/* -Rf
+rm -Rf boilerplate/src/app/*
 rm boilerplate/src/main.ts
