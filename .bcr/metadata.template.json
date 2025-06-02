@@ -1,0 +1,18 @@
+{
+  "homepage": "https://github.com/devversion/rules_angular",
+  "maintainers": [
+    {
+      "email": "alex@aspect.build",
+      "github": "alexeagle",
+      "name": "Alex Eagle"
+    },
+    {
+      "email": "paulgschwendtner@gmail.com",
+      "github": "devversion",
+      "name": "Paul Gschwendtner"
+    }
+  ],
+  "repository": ["github:devversion/rules_angular"],
+  "versions": [],
+  "yanked_versions": {}
+}
