@@ -23,6 +23,7 @@ WELL_KNOWN_EXTERNALS = [
     "@angular/common/upgrade",
     "@angular/compiler",
     "@angular/core",
+    "@angular/core/rxjs-interop",
     "@angular/core/testing",
     "@angular/elements",
     "@angular/forms",
@@ -246,8 +247,8 @@ def _angular_package_format_impl(ctx):
 
         module_name = "/".join([_ for _ in [
             ctx.attr.package,
-            es2022_entry_point.short_path[len(owning_package) + 1:][:-(len("index.js") + 1)]
-        ] if _ != ''])
+            es2022_entry_point.short_path[len(owning_package) + 1:][:-(len("index.js") + 1)],
+        ] if _ != ""])
 
         bundle_name_base = primary_bundle_name if is_primary_entry_point else entry_point
         dts_bundle_name_base = "index" if is_primary_entry_point else "%s/index" % entry_point
@@ -318,7 +319,6 @@ def _angular_package_format_impl(ctx):
     )
     dts_rollup_inputs = depset(static_files, transitive = [unscoped_all_entry_point_dts_depset])
     dts_bundles_out = _run_rollup(ctx, dts_rollup_config, dts_rollup_inputs, dts_mode = True)
-
 
     packager_inputs = (static_files + esm2022)
     packager_inputs.append(fesm_bundles_out)
@@ -409,13 +409,12 @@ angular_package_format = rule(
         ),
         "readme_md": attr.label(
             doc = """A textfile that will be copied to the root of the npm package.""",
-            allow_single_file = [".md"]
+            allow_single_file = [".md"],
         ),
         "package": attr.string(
             doc = "The name of the package being produced.",
             mandatory = True,
-        ),        
-        
+        ),
         "_ng_packager": attr.label(
             default = Label(_DEFAULT_NG_PACKAGER),
             executable = True,
