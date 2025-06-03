@@ -14,4 +14,4 @@ tasks:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
     build_targets:
-    - '@rules_angular//src/...'
+    - '@rules_angular//src/architect/...'

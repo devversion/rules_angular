@@ -1,6 +1,6 @@
 "Macro definition to package an angular library"
 
-load("@aspect_bazel_lib//lib:jq.bzl", "jq")
+load("@jq.bzl//jq:jq.bzl", "jq")
 load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary")
 load(":utils.bzl", "TEST_PATTERNS", "ng_bin")
 
