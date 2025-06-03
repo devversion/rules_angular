@@ -1,6 +1,6 @@
 "Macro definition to copy & modify root config files"
 
-load("@aspect_bazel_lib//lib:jq.bzl", "jq")
+load("@jq.bzl//jq:jq.bzl", "jq")
 
 # JQ expressions to update Angular project output paths from dist/* to projects/*/dist
 # We do this to avoid mutating the files in the source tree, so that the native tooling without Bazel continues to work.
