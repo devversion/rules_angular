@@ -217,7 +217,7 @@ const config = {
     sourcemap: !dtsMode,
     banner: bannerContent,
     entryFileNames: `[name].${outputExtension}`,
-    chunkFileNames: `[name]-[hash].${outputExtension}`,
+    chunkFileNames: `[name].${outputExtension}`,
   },
 };
 
