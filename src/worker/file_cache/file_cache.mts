@@ -1,3 +1,4 @@
+import {debugMode} from '../constants.mjs';
 import {MAX_WORKER_MEMORY} from '../worker_memory.mjs';
 import {Cache} from './base.mjs';
 import ts from 'typescript';
@@ -53,7 +54,9 @@ export class FileCache {
       // Evict the file entry if the digest has changed.
       const entry = this.fileCache.get(path, /*updateCache=*/ false);
       if (entry && !isSameDigest(entry.digest, digest)) {
-        console.error('evicting', path);
+        if (debugMode) {
+          console.error('evicting', path);
+        }
         this.fileCache.delete(path);
       }
     }
