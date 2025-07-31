@@ -26,7 +26,7 @@ def ng_package(
             "%s_apf_substituted" % name,
         ] + nested_packages,
         replace_prefixes = dict({
-            "%s_apf_substituted" % name: "/",
+            "%s_apf_substituted/%s_apf" % (name, name): "/",
             "schematics/npm_package/": "schematics/",
             "schematics/pkg/": "schematics/",
         }, **replace_prefixes),
