@@ -109,7 +109,7 @@ async function main(args: string[]) {
           .map((file: string) => {
             return {
               full: file,
-              relative: file.slice(origin.full.length + 1),
+              relative: file.slice(basePath.length),
             };
           })
       )

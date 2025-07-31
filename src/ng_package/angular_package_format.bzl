@@ -168,7 +168,7 @@ def _filter_esm_files_to_include(files, owning_package):
     return result
 
 def _angular_package_format_impl(ctx):
-    apf_directory = ctx.actions.declare_directory("%s.apf" % ctx.label.name)
+    apf_directory = ctx.actions.declare_directory(ctx.label.name)
     owning_package = ctx.label.package
 
     # The name of the primary entry-point FESM bundles, computed name from the owning package
