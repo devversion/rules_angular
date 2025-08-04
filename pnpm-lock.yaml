@@ -4,6 +4,8 @@ settings:
   autoInstallPeers: false
   excludeLinksFromLockfile: false
 
+pnpmfileChecksum: sha256-D8BmX3+ClNe2tQNJkiM28QjuUzcX6WVfUFAWQe/wM/I=
+
 importers:
 
   .:
@@ -14,7 +16,7 @@ importers:
     devDependencies:
       '@angular/build':
         specifier: 20.2.0-next.2
-        version: 20.2.0-next.2(@angular/compiler-cli@20.2.0-next.2(@angular/compiler@20.2.0-next.2)(typescript@5.9.2))(@angular/compiler@20.2.0-next.2)(@angular/core@20.2.0-next.2(@angular/compiler@20.2.0-next.2)(rxjs@7.8.2)(zone.js@0.15.0))(@angular/platform-browser@20.2.0-next.2(@angular/common@20.2.0-next.2(@angular/core@20.2.0-next.2(@angular/compiler@20.2.0-next.2)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.2.0-next.2(@angular/compiler@20.2.0-next.2)(rxjs@7.8.2)(zone.js@0.15.0)))(@types/node@22.10.1)(chokidar@4.0.1)(postcss@8.5.6)(terser@5.36.0)(tslib@2.8.1)(typescript@5.9.2)
+        version: 20.2.0-next.2(@angular/compiler-cli@20.2.0-next.2(@angular/compiler@20.2.0-next.2))(@angular/compiler@20.2.0-next.2)(@angular/core@20.2.0-next.2(@angular/compiler@20.2.0-next.2)(rxjs@7.8.2)(zone.js@0.15.0))(@angular/platform-browser@20.2.0-next.2(@angular/common@20.2.0-next.2(@angular/core@20.2.0-next.2(@angular/compiler@20.2.0-next.2)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.2.0-next.2(@angular/compiler@20.2.0-next.2)(rxjs@7.8.2)(zone.js@0.15.0)))(@types/node@22.10.1)(chokidar@4.0.1)(postcss@8.5.6)(terser@5.36.0)(tslib@2.8.1)(typescript@5.9.2)
       '@angular/cli':
         specifier: 20.2.0-next.2
         version: 20.2.0-next.2(@types/node@22.10.1)(chokidar@4.0.1)
@@ -26,7 +28,7 @@ importers:
         version: 20.2.0-next.2
       '@angular/compiler-cli':
         specifier: 20.2.0-next.2
-        version: 20.2.0-next.2(@angular/compiler@20.2.0-next.2)(typescript@5.9.2)
+        version: 20.2.0-next.2(@angular/compiler@20.2.0-next.2)
       '@angular/core':
         specifier: 20.2.0-next.2
         version: 20.2.0-next.2(@angular/compiler@20.2.0-next.2)(rxjs@7.8.2)(zone.js@0.15.0)
@@ -81,9 +83,9 @@ importers:
       tslib:
         specifier: ^2.8.1
         version: 2.8.1
-      typescript:
-        specifier: 5.9.2
-        version: 5.9.2
+      typescript-local:
+        specifier: npm:typescript@5.9.2
+        version: typescript@5.9.2
       zone.js:
         specifier: ^0.15.0
         version: 0.15.0
@@ -227,10 +229,6 @@ packages:
     hasBin: true
     peerDependencies:
       '@angular/compiler': 20.2.0-next.2
-      typescript: '>=5.8 <6.0'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
 
   '@angular/compiler@20.2.0-next.2':
     resolution: {integrity: sha512-i1FgN0i0znbW8jigPxjVj6qPDQcnf7SwwKWUBBF1PMiXvJlJD4NA3m2p9JtOSFmDdi0rFBhMbV8FX46dEirJBg==}
@@ -2958,12 +2956,12 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@angular/build@20.2.0-next.2(@angular/compiler-cli@20.2.0-next.2(@angular/compiler@20.2.0-next.2)(typescript@5.9.2))(@angular/compiler@20.2.0-next.2)(@angular/core@20.2.0-next.2(@angular/compiler@20.2.0-next.2)(rxjs@7.8.2)(zone.js@0.15.0))(@angular/platform-browser@20.2.0-next.2(@angular/common@20.2.0-next.2(@angular/core@20.2.0-next.2(@angular/compiler@20.2.0-next.2)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.2.0-next.2(@angular/compiler@20.2.0-next.2)(rxjs@7.8.2)(zone.js@0.15.0)))(@types/node@22.10.1)(chokidar@4.0.1)(postcss@8.5.6)(terser@5.36.0)(tslib@2.8.1)(typescript@5.9.2)':
+  '@angular/build@20.2.0-next.2(@angular/compiler-cli@20.2.0-next.2(@angular/compiler@20.2.0-next.2))(@angular/compiler@20.2.0-next.2)(@angular/core@20.2.0-next.2(@angular/compiler@20.2.0-next.2)(rxjs@7.8.2)(zone.js@0.15.0))(@angular/platform-browser@20.2.0-next.2(@angular/common@20.2.0-next.2(@angular/core@20.2.0-next.2(@angular/compiler@20.2.0-next.2)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.2.0-next.2(@angular/compiler@20.2.0-next.2)(rxjs@7.8.2)(zone.js@0.15.0)))(@types/node@22.10.1)(chokidar@4.0.1)(postcss@8.5.6)(terser@5.36.0)(tslib@2.8.1)(typescript@5.9.2)':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@angular-devkit/architect': 0.2002.0-next.2(chokidar@4.0.1)
       '@angular/compiler': 20.2.0-next.2
-      '@angular/compiler-cli': 20.2.0-next.2(@angular/compiler@20.2.0-next.2)(typescript@5.9.2)
+      '@angular/compiler-cli': 20.2.0-next.2(@angular/compiler@20.2.0-next.2)
       '@babel/core': 7.28.0
       '@babel/helper-annotate-as-pure': 7.27.3
       '@babel/helper-split-export-declaration': 7.24.7
@@ -3039,7 +3037,7 @@ snapshots:
       rxjs: 7.8.2
       tslib: 2.8.1
 
-  '@angular/compiler-cli@20.2.0-next.2(@angular/compiler@20.2.0-next.2)(typescript@5.9.2)':
+  '@angular/compiler-cli@20.2.0-next.2(@angular/compiler@20.2.0-next.2)':
     dependencies:
       '@angular/compiler': 20.2.0-next.2
       '@babel/core': 7.28.0
@@ -3050,8 +3048,6 @@ snapshots:
       semver: 7.7.2
       tslib: 2.8.1
       yargs: 18.0.0
-    optionalDependencies:
-      typescript: 5.9.2
     transitivePeerDependencies:
       - supports-color
 

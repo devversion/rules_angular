@@ -29,7 +29,7 @@ load("//setup:step_3.bzl", "rules_angular_step3")
 
 rules_angular_step3(
     angular_compiler_cli = "//:node_modules/@angular/compiler-cli",
-    typescript = "//:node_modules/typescript",
+    typescript = "//:node_modules/typescript-local",
 )
 
 http_archive(
