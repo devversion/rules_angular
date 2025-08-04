@@ -6,11 +6,6 @@ load("//src/private:symlink_package.bzl", "symlink_package")
 package(default_visibility = ["//visibility:public"])
 
 symlink_package(
-    name = "node_modules/typescript",
-    src = "@rules_angular_configurable_deps//:typescript",
-)
-
-symlink_package(
     name = "node_modules/@angular/compiler-cli",
     src = "@rules_angular_configurable_deps//:angular_compiler_cli",
 )
@@ -45,7 +40,7 @@ ts_project(
     declaration = True,
     tsconfig = "tsconfig",
     deps = [
-        ":node_modules/typescript",
+        "//:node_modules/typescript",
         "//:node_modules/json-stable-stringify",
         "//:node_modules/lru-cache",
         "//:node_modules/memfs",
@@ -67,7 +62,7 @@ ts_project(
     tsconfig = "tsconfig",
     deps = [
         ":node_modules/@angular/compiler-cli",  # user-configured compiler
-        ":node_modules/typescript",
+        "//:node_modules/typescript",
         "//:node_modules/json-stable-stringify",
         "//:node_modules/lru-cache",
         "//:node_modules/memfs",
