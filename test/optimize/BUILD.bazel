@@ -10,5 +10,6 @@ optimize_angular_app(
         "//:node_modules/@angular/platform-browser",
         "//:node_modules/rxjs",
         "//:node_modules/tslib",
+        "//:node_modules/typescript",
     ],
 )

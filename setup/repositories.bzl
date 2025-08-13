@@ -1,4 +1,4 @@
-def _step3_impl(rctx):
+def _configurable_deps_impl(rctx):
     rctx.file(
         "BUILD.bazel",
         content = """
@@ -19,8 +19,8 @@ alias(
         ),
     )
 
-_step3 = repository_rule(
-    implementation = _step3_impl,
+configurable_deps_repo = repository_rule(
+    implementation = _configurable_deps_impl,
     attrs = {
         "angular_compiler_cli": attr.label(
             mandatory = True,
@@ -32,10 +32,3 @@ _step3 = repository_rule(
         ),
     },
 )
-
-def rules_angular_step3(angular_compiler_cli, typescript):
-    _step3(
-        name = "rules_angular_configurable_deps",
-        angular_compiler_cli = angular_compiler_cli,
-        typescript = typescript,
-    )
