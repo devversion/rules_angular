@@ -14,7 +14,7 @@ function suppress_on_success {
 
 # find path to the Angular CLI executable.
 RUNFILES="$(realpath $0.runfiles)"
-NG_CLI_TOOL="$RUNFILES/rules_angular/src/optimization/ng_cli_tool_/ng_cli_tool"
+NG_CLI_TOOL="$RUNFILES/_main/src/optimization/ng_cli_tool_/ng_cli_tool"
 
 # cd into the bazel bin dir
 cd ${OUT_DIR}/..
