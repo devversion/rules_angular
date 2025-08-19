@@ -27,12 +27,14 @@ def optimize_angular_app(
             ":_%s_package" % name,
             "@yq_toolchains//:resolved_toolchain",
             "@rules_angular//src/optimization/boilerplate",
+            "@rules_angular//src/optimization:ng_cli_tool"
         ] + deps,
         out_dirs = ["%s_cli_execution" % name],
         use_default_shell_env = True,
         progress_message = "Optimizing Angular app: %{label}",
         mnemonic = "OptimizeAngular",
         env = dict({
+            "NG_CLI_TOOL_RUNFILES_PATH": "$(rlocationpath @rules_angular//src/optimization:ng_cli_tool)",
             "BAZEL_BINDIR": ".",
             "OUT_DIR": "$(@)",
             "CURRENT_PACKAGE": native.package_name(),
