@@ -113,7 +113,7 @@
     "//setup:extensions.bzl%rules_angular": {
       "general": {
         "bzlTransitiveDigest": "fkaH7HMicL3g7/NDaFzlq39kcLopMyQ3KdbDn+5CRzA=",
-        "usagesDigest": "zy+5CDr0hDO2ND/Q27pI9zd05rNFT1b0p6verIjEWHE=",
+        "usagesDigest": "0t7tv86ejEqr8uyuN1VDgpyok1zxESOaJ+6fGDnezhM=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -229,7 +229,7 @@
     "@@rules_nodejs~//nodejs:extensions.bzl%node": {
       "general": {
         "bzlTransitiveDigest": "hdICB1K7PX7oWtO8oksVTBDNt6xxiNERpcO4Yxoa0Gc=",
-        "usagesDigest": "hJYIl9p19urNaYA67Sbz/hdGZOxRS3O7F10/dDYjSdU=",
+        "usagesDigest": "nAtkQ8ljUfD2QYFA4UD/rw0Jzw8D04nFauclFvZpR6s=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
