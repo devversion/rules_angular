@@ -22,6 +22,7 @@ def ng_application(
         ng_config,
         project_name = None,
         args = [],
+        serve_args = [],
         srcs = [],
         deps = [],
         **kwargs):
@@ -64,6 +65,6 @@ def ng_application(
         name = name + ".serve",
         tool = tool,
         chdir = native.package_name(),
-        args = ["serve", project_name],
+        args = ["serve", project_name] + args + serve_args,
         data = srcs + deps,
     )
