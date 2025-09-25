@@ -195,8 +195,6 @@ if (dtsMode) {
   );
 }
 
-const outputExtension = dtsMode ? 'd.ts' : 'mjs';
-
 /** @type {import('rollup').RollupOptions} */
 const config = {
   input,
@@ -217,8 +215,8 @@ const config = {
     minifyInternalExports: false,
     sourcemap: !dtsMode,
     banner: bannerContent,
-    entryFileNames: `[name].${outputExtension}`,
-    chunkFileNames: `[name].${outputExtension}`,
+    entryFileNames: '[name].' + (dtsMode ? 'd.ts' : 'mjs'),
+    chunkFileNames: '[name].' + (dtsMode ? 'ts' : 'mjs'),
   },
 };
 
