@@ -150,7 +150,7 @@ function main(args: string[]): void {
     return getEntryPointSubpath(moduleName) !== '';
   }
 
-  const crossEntryPointFailures = esm2022.flatMap((file) =>
+  const crossEntryPointFailures = esm2022.flatMap(file =>
     analyzeFileAndEnsureNoCrossImports(file, metadata),
   );
 
@@ -161,16 +161,13 @@ function main(args: string[]): void {
 
   // Copy all FESM files (and their potential shared chunks) into the package output.
   const fesmFiles = globSync('**/*', {cwd: metadata.fesmBundlesOut.path});
-  fesmFiles.forEach((f) =>
+  fesmFiles.forEach(f =>
     copyFile(path.join(metadata.fesmBundlesOut.path, f), path.join('fesm2022', f)),
   );
 
   // Copy all dts files (and their potential shared chunks) into the package output.
   const dtsFiles = globSync('**/*', {cwd: metadata.dtsBundlesOut.path});
-  dtsFiles.forEach((f) =>
-    // TODO(devversion): Put all types under `/types/` folder. Breaking change in v20.
-    copyFile(path.join(metadata.dtsBundlesOut.path, f), f),
-  );
+  dtsFiles.forEach(f => copyFile(path.join(metadata.dtsBundlesOut.path, f), path.join('types', f)));
 
   for (const file of staticFiles) {
     // We copy all files into the package output while preserving the sub-path from
@@ -326,10 +323,10 @@ function main(args: string[]): void {
 
     const sideEffects = packageJson.sideEffects as undefined | false | string[];
     const neededSideEffects = sideEffectEntryPoints.map(
-      (entryPointModule) => `./${metadata.entryPoints[entryPointModule].fesm2022RelativePath}`,
+      entryPointModule => `./${metadata.entryPoints[entryPointModule].fesm2022RelativePath}`,
     );
     const missingSideEffects = neededSideEffects.filter(
-      (p) =>
+      p =>
         // It's missing, if the whole package is marked as having no side effects.
         sideEffects === false ||
         // Alternatively, it's missing if the explicit list doesn't contain the pattern.
@@ -348,9 +345,7 @@ function main(args: string[]): void {
     // of the `ng_package` known entry points.
     const unexpectedExtra =
       sideEffects !== false
-        ? (sideEffects ?? []).filter(
-            (p) => p.includes('fesm2022') && !neededSideEffects.includes(p),
-          )
+        ? (sideEffects ?? []).filter(p => p.includes('fesm2022') && !neededSideEffects.includes(p))
         : [];
     if (unexpectedExtra.length > 0) {
       throw Error(
