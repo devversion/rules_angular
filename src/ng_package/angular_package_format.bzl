@@ -208,7 +208,7 @@ def _angular_package_format_impl(ctx):
         entry_point_package = dep.label.package
 
         # Intentionally evaluates to empty string for the main entry point
-        entry_point = entry_point_package[len(owning_package) + 1:]
+        entry_point = entry_point_package[len(owning_package) + 1:].replace('/', '-')
 
         # Whether this dependency is for the primary entry-point of the package.
         is_primary_entry_point = entry_point == ""
