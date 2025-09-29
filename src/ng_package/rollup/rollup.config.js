@@ -195,6 +195,8 @@ if (dtsMode) {
   );
 }
 
+const outExtension = dtsMode ? 'd.ts' : 'mjs';
+
 /** @type {import('rollup').RollupOptions} */
 const config = {
   input,
@@ -215,8 +217,9 @@ const config = {
     minifyInternalExports: false,
     sourcemap: !dtsMode,
     banner: bannerContent,
-    entryFileNames: '[name].' + (dtsMode ? 'd.ts' : 'mjs'),
-    chunkFileNames: '[name].' + (dtsMode ? 'ts' : 'mjs'),
+    entryFileNames: '[name].' + outExtension,
+    // Hashing is needed as otherwise rollup will emit files with `.d.d.ts` in some cases.
+    chunkFileNames: '[name]-[hash].' + outExtension,
   },
 };
 
