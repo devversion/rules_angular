@@ -214,12 +214,16 @@ const config = {
     },
   },
   output: {
+    // Rollup will add a `.d` as part of the filename instead of an extension.
+    // This will avoid outputting `.d.d.ts`.
+    sanitizeFileName: fileName => (fileName.endsWith('.d') ? fileName.slice(0, -2) : fileName),
     minifyInternalExports: false,
     sourcemap: !dtsMode,
     banner: bannerContent,
     entryFileNames: '[name].' + outExtension,
-    // Hashing is needed as otherwise rollup will emit files with `.d.d.ts` in some cases.
-    chunkFileNames: '[name]-[hash].' + outExtension,
+    // Name this with `_` as this can be useful when examing the output structure
+    // and also it makes it clearer for users if these are imported by accident.
+    chunkFileNames: '_[name]-chunk.' + outExtension,
   },
 };
 
