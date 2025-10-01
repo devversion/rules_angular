@@ -208,7 +208,7 @@ def _angular_package_format_impl(ctx):
         entry_point_package = dep.label.package
 
         # Intentionally evaluates to empty string for the main entry point
-        entry_point = entry_point_package[len(owning_package) + 1:].replace('/', '-')
+        entry_point = entry_point_package[len(owning_package) + 1:]
 
         # Whether this dependency is for the primary entry-point of the package.
         is_primary_entry_point = entry_point == ""
@@ -251,6 +251,7 @@ def _angular_package_format_impl(ctx):
         ] if _ != ""])
 
         bundle_name_base = primary_bundle_name if is_primary_entry_point else entry_point
+        bundle_name_base = bundle_name_base.replace('/', '-')
 
         # Store the collected entry point in a list of all entry-points. This
         # can be later passed to the packager as a manifest.
