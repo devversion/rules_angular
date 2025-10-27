@@ -431,6 +431,7 @@ angular_package_format = rule(
         # TODO: Remove rollup_runtime_deps once we can pass in the rollup deps from the external.
         "rollup_runtime_deps": attr.label_list(
             default = [
+                Label("//:node_modules/@babel/core"),
                 Label("//:node_modules/@rollup/plugin-commonjs"),
                 Label("//:node_modules/@rollup/plugin-node-resolve"),
                 Label("//:node_modules/magic-string"),
