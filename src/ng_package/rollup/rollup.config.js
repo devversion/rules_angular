@@ -11,11 +11,44 @@
 
 const {nodeResolve} = require('@rollup/plugin-node-resolve');
 const commonjs = require('@rollup/plugin-commonjs');
+const {transformSync} = require('@babel/core');
 const MagicString = require('magic-string');
 const sourcemaps = require('rollup-plugin-sourcemaps2');
 const {dts} = require('rollup-plugin-dts');
 const path = require('path');
 const fs = require('fs');
+
+function removeCommentsPlugin() {
+  return {
+    name: 'comment-filter',
+    transform(code, id) {
+      // Only process JavaScript files (and optionally exclude node_modules)
+      if (!/\.m?js$/.test(id) || id.includes('node_modules')) {
+        return null;
+      }
+
+      const result = transformSync(code, {
+        filename: id,
+        comments: true,
+        sourceMaps: true,
+        generatorOpts: {
+          shouldPrintComment: comment => {
+            if (!comment) {
+              return false;
+            }
+
+            return comment.includes('__PURE__') || /@license|@preserve|^!/i.test(comment);
+          },
+        },
+      });
+
+      return {
+        code: result.code,
+        map: result.map,
+      };
+    },
+  };
+}
 
 function log_verbose(...m) {
   // This is a template file so we use __filename to output the actual filename
@@ -143,7 +176,7 @@ if (bannerFile) {
 const stripBannerPlugin = {
   name: 'strip-license-banner',
   transform(code, _filePath) {
-    const banner = /(\/\**\s+\*\s@license.*?\*\/)/s.exec(code);
+    const banner = /(\/\*[\!\*]\s+\*\s@license.*?\*\/)/s.exec(code);
     if (!banner) {
       return;
     }
@@ -191,6 +224,7 @@ if (dtsMode) {
       customResolveOptions: {moduleDirectory: nodeModulesRoot},
     }),
     commonjs({ignoreGlobal: true}),
+    removeCommentsPlugin(),
     sourcemaps(),
   );
 }
