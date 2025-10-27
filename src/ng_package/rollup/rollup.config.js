@@ -11,11 +11,44 @@
 
 const {nodeResolve} = require('@rollup/plugin-node-resolve');
 const commonjs = require('@rollup/plugin-commonjs');
+const {transformSync} = require('@babel/core');
 const MagicString = require('magic-string');
 const sourcemaps = require('rollup-plugin-sourcemaps2');
 const {dts} = require('rollup-plugin-dts');
 const path = require('path');
 const fs = require('fs');
+
+function removeCommentsPlugin() {
+  return {
+    name: 'comment-filter',
+    transform(code, id) {
+      // Only process JavaScript files (and optionally exclude node_modules)
+      if (!/\.m?js$/.test(id) || id.includes('node_modules')) {
+        return null;
+      }
+
+      const {code, map} = transformSync(code, {
+        filename: id,
+        comments: true,
+        sourceMaps: true,
+        generatorOpts: {
+          shouldPrintComment: comment => {
+            const text = comment.value?.trim();
+            const shouldPreserve =
+              text?.includes('__PURE__') || /@license|@preserve|^!/i.test(text);
+
+            return shouldPreserve;
+          },
+        },
+      });
+
+      return {
+        code,
+        map,
+      };
+    },
+  };
+}
 
 function log_verbose(...m) {
   // This is a template file so we use __filename to output the actual filename
@@ -103,7 +136,7 @@ function resolveBazel(importee, importer) {
         // note that the module_root attribute is intended to be used for type-checking
         // so it uses eg. "index.d.ts". At runtime, we have only index.js, so we strip the
         // .d.ts suffix and let node require.resolve do its thing.
-        var v = moduleMappings[k].replace(/\.d\.ts$/, '');
+        var v = dtsMode ? moduleMappings[k] : moduleMappings[k].replace(/\.d\.ts$/, '');
         const mappedImportee = path.join(v, normalizedImportee.slice(k.length + 1));
         log_verbose(`module mapped '${importee}' to '${mappedImportee}'`);
         resolved = resolveInRootDir(mappedImportee);
@@ -143,7 +176,7 @@ if (bannerFile) {
 const stripBannerPlugin = {
   name: 'strip-license-banner',
   transform(code, _filePath) {
-    const banner = /(\/\**\s+\*\s@license.*?\*\/)/s.exec(code);
+    const banner = /(\/\*[\!\*]\s+\*\s@license.*?\*\/)/s.exec(code);
     if (!banner) {
       return;
     }
@@ -181,7 +214,7 @@ const sideEffectFileMatchers = sideEffectEntryPoints.map(entryPointModule => {
 });
 
 if (dtsMode) {
-  plugins.push(dts());
+  plugins.push({name: 'resolveBazel', resolveId: resolveBazel}, dts());
 } else {
   plugins.push(
     {name: 'resolveBazel', resolveId: resolveBazel},
@@ -191,6 +224,7 @@ if (dtsMode) {
       customResolveOptions: {moduleDirectory: nodeModulesRoot},
     }),
     commonjs({ignoreGlobal: true}),
+    removeCommentsPlugin(),
     sourcemaps(),
   );
 }
