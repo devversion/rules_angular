@@ -19,7 +19,11 @@ JQ_DIST_REPLACE_TSCONFIG = """
 JQ_DIST_REPLACE_ANGULAR = """
 (
   .projects | to_entries | map(
-    .value.architect.test.options.preserveSymlinks = true
+    if .value.architect.test.builder != "@angular/build:unit-test" then
+      .value.architect.test.options.preserveSymlinks = true
+    else
+      .
+    end
     |
     if .value.projectType == "application" then
       .value.architect.build.options.outputPath = "./" + .value.root + "/dist"
