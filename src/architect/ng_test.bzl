@@ -13,6 +13,7 @@ NPM_DEPS = lambda node_modules: ["/".join([node_modules, s]) for s in [
     "@types/jasmine",
     "@types/node",
     "jasmine-core",
+    "karma",
     "karma-chrome-launcher",
     "karma-coverage",
     "karma-jasmine",
