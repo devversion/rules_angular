@@ -30,6 +30,7 @@ function removeCommentsPlugin() {
       const result = transformSync(code, {
         filename: id,
         comments: true,
+        inputSourceMap: false, // Enabling input sourcemaps causes sourcemaps to break.
         sourceMaps: true,
         generatorOpts: {
           shouldPrintComment: comment => {
