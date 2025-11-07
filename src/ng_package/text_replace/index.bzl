@@ -1,11 +1,10 @@
-
 def _text_replace_impl(ctx):
-    # Directory where replaced files will be 
+    # Directory where replaced files will be
     replaced_directory = ctx.actions.declare_directory(ctx.label.name)
 
     inputs = [
         ctx.version_file,
-        ctx.info_file
+        ctx.info_file,
     ] + ctx.files.srcs
 
     args = ctx.actions.args()
@@ -13,19 +12,25 @@ def _text_replace_impl(ctx):
 
     # The mapping of substitutions to apply
     args.add(ctx.attr.substitutions)
+
     # All of the file/directory locations to discover files to apply the substitutions to.
     args.add(json.encode([input.path for input in ctx.files.srcs]))
+
     # The path to the volite status file for substitution of values from the file
     args.add(ctx.version_file.path)
+
     # The path to the stable status file for substitution of values from the file
     args.add(ctx.info_file.path)
+
     # The location of the root bin directory.
     args.add(ctx.bin_dir.path)
+
     # The location of the basepath for all sources
     args.add(replaced_directory.dirname)
+
     # The location to place all of the copied files.
     args.add(replaced_directory.path)
-    
+
     ctx.actions.run(
         progress_message = "Applying substitutions (%s)" % ctx.label.name,
         mnemonic = "TextReplace",
@@ -38,7 +43,7 @@ def _text_replace_impl(ctx):
             "BAZEL_BINDIR": ".",
         },
     )
-    
+
     return [
         DefaultInfo(files = depset([replaced_directory])),
     ]
@@ -60,6 +65,6 @@ text_replace = rule(
             executable = True,
             default = Label("//src/ng_package/text_replace:bin"),
             cfg = "exec",
-        )
+        ),
     },
 )

@@ -62,10 +62,10 @@ ts_project(
     tsconfig = "tsconfig",
     deps = [
         ":node_modules/@angular/compiler-cli",  # user-configured compiler
-        "//:node_modules/typescript",
         "//:node_modules/json-stable-stringify",
         "//:node_modules/lru-cache",
         "//:node_modules/memfs",
+        "//:node_modules/typescript",
     ],
 )
 

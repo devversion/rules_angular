@@ -10,17 +10,8 @@ TEST_CONFIG = [
 
 NPM_DEPS = lambda node_modules: ["/".join([node_modules, s]) for s in [
     "@angular",  # Take all of them, since the list varies across angular versions
-    "@types/jasmine",
-    "@types/node",
-    "jasmine-core",
-    "karma",
-    "karma-chrome-launcher",
-    "karma-coverage",
-    "karma-jasmine",
-    "karma-jasmine-html-reporter",
     "tslib",
     "rxjs",
-    "zone.js",
 ]]
 
 def ng_test(name, node_modules, ng_config, args = [], project_name = None, srcs = [], deps = [], **kwargs):

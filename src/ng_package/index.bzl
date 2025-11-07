@@ -3,12 +3,12 @@ load("//src/ng_package:angular_package_format.bzl", "angular_package_format")
 load("//src/ng_package/text_replace:index.bzl", "text_replace")
 
 def ng_package(
-    name,
-    nested_packages = [],
-    substitutions = {},
-    tags = [],
-    replace_prefixes = {},
-    **kwargs):
+        name,
+        nested_packages = [],
+        substitutions = {},
+        tags = [],
+        replace_prefixes = {},
+        **kwargs):
     angular_package_format(
         name = "%s_apf" % name,
         **kwargs

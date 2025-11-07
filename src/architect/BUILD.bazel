@@ -12,8 +12,8 @@ bzl_library(
     name = "ng_application",
     srcs = ["ng_application.bzl"],
     deps = [
-        "@aspect_rules_js//js:defs",
         ":utils",
+        "@aspect_rules_js//js:defs",
     ],
 )
 
@@ -21,9 +21,9 @@ bzl_library(
     name = "ng_library",
     srcs = ["ng_library.bzl"],
     deps = [
+        ":utils",
         "@aspect_rules_js//js:defs",
         "@jq.bzl//jq",
-        ":utils",
     ],
 )
 
@@ -31,8 +31,8 @@ bzl_library(
     name = "ng_test",
     srcs = ["ng_test.bzl"],
     deps = [
-        "@aspect_rules_js//js:defs",
         ":utils",
+        "@aspect_rules_js//js:defs",
     ],
 )
 

@@ -8,14 +8,14 @@ sh_binary(
 
 run_binary(
     name = "boilerplate",
+    srcs = [
+        "//src/optimization:ng_cli_tool",
+    ],
     env = {
         "BAZEL_BINDIR": "$(BINDIR)",
         "OUT_DIR": "$(@)",
         "NG_CLI_TOOL_RUNFILES_PATH": "$(rlocationpath //src/optimization:ng_cli_tool)",
     },
-    srcs = [
-        "//src/optimization:ng_cli_tool",
-    ],
     mnemonic = "GenerateCLIBoilerplate",
     out_dirs = ["boilerplate"],
     progress_message = "Generating Angular CLI boilerplate: %{label}",

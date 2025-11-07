@@ -13,7 +13,6 @@ NPM_DEPS = lambda node_modules: ["/".join([node_modules, s]) for s in [
     "@angular",  # Take all of them, since the list varies across angular versions
     "rxjs",
     "tslib",
-    "zone.js",
 ]]
 
 def ng_application(
