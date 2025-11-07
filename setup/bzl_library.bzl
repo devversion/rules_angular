@@ -1,4 +1,5 @@
 "Workaround for https://github.com/bazelbuild/bazel-skylib/pull/571"
+
 load("@bazel_skylib//:bzl_library.bzl", _bzl_library = "bzl_library")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 

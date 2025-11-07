@@ -251,7 +251,7 @@ def _angular_package_format_impl(ctx):
         ] if _ != ""])
 
         bundle_name_base = primary_bundle_name if is_primary_entry_point else entry_point
-        bundle_name_base = bundle_name_base.replace('/', '-')
+        bundle_name_base = bundle_name_base.replace("/", "-")
 
         # Store the collected entry point in a list of all entry-points. This
         # can be later passed to the packager as a manifest.

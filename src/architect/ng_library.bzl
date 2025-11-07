@@ -1,7 +1,7 @@
 "Macro definition to package an angular library"
 
-load("@jq.bzl//jq:jq.bzl", "jq")
 load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_binary")
+load("@jq.bzl//jq:jq.bzl", "jq")
 load(":utils.bzl", "TEST_PATTERNS", "ng_bin")
 
 # Idiomatic configuration files created by `ng generate`
@@ -14,10 +14,12 @@ LIBRARY_CONFIG = [
 NPM_DEPS = lambda node_modules: ["/".join([node_modules, s]) for s in [
     "@angular/build",
     "@angular/common",
+    "@angular/compiler",
+    "@angular/compiler-cli",
     "@angular/core",
-    "@angular/router",
     "rxjs",
     "tslib",
+    "ng-packagr",
 ]]
 
 def ng_library(name, node_modules, ng_config, project_name = None, srcs = [], deps = [], **kwargs):
