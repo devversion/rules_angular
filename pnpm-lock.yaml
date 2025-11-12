@@ -9,6 +9,13 @@ pnpmfileChecksum: sha256-XtUaqxMdcZeX6V2GgPPg1gDpiDUY/qXsjmAn+Gha8jY=
 importers:
 
   .:
+    dependencies:
+      '@angular/compiler-cli':
+        specifier: 20.2.0-next.2
+        version: 20.2.0-next.2(@angular/compiler@20.2.0-next.2)
+      typescript-local:
+        specifier: npm:typescript@5.9.2
+        version: typescript@5.9.2
     devDependencies:
       '@angular/build':
         specifier: 20.2.0-next.2
@@ -22,9 +29,6 @@ importers:
       '@angular/compiler':
         specifier: 20.2.0-next.2
         version: 20.2.0-next.2
-      '@angular/compiler-cli':
-        specifier: 20.2.0-next.2
-        version: 20.2.0-next.2(@angular/compiler@20.2.0-next.2)
       '@angular/core':
         specifier: 20.2.0-next.2
         version: 20.2.0-next.2(@angular/compiler@20.2.0-next.2)(rxjs@7.8.2)(zone.js@0.15.0)
@@ -82,9 +86,6 @@ importers:
       tslib:
         specifier: ^2.8.1
         version: 2.8.1
-      typescript-local:
-        specifier: npm:typescript@5.9.2
-        version: typescript@5.9.2
       zone.js:
         specifier: ^0.15.0
         version: 0.15.0
