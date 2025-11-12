@@ -18,10 +18,11 @@ def manifest_path(ctx, file):
 
 def _symlink_impl(ctx):
     src = ctx.attr.src
-
-    store_info = src[JsInfo].npm_package_store_infos.to_list()[0]
-    src_dir = store_info.package_store_directory
-    src_workspace = src.label.workspace_name if src.label.workspace_name != "" else ctx.workspace_name
+    infos = src[JsInfo].npm_package_store_infos.to_list()
+    if len(infos) == 0:
+      src_dir = src[JsInfo].npm_sources.to_list()[0]
+    else:
+      src_dir = infos[0].package_store_directory
 
     destination = ctx.actions.declare_symlink(ctx.attr.name)
     destination_build = ctx.actions.declare_symlink(
