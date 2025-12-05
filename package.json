@@ -12,16 +12,16 @@
     "onlyBuiltDependencies": []
   },
   "dependencies": {
-    "@angular/compiler-cli": "21.0.0",
+    "@angular/compiler-cli": "21.0.3",
     "typescript-local": "npm:typescript@5.9.2"
   },
   "devDependencies": {
-    "@angular/build": "21.0.0",
-    "@angular/cli": "21.0.0",
-    "@angular/common": "21.0.0",
-    "@angular/compiler": "21.0.0",
-    "@angular/core": "21.0.0",
-    "@angular/platform-browser": "21.0.0",
+    "@angular/build": "21.0.2",
+    "@angular/cli": "21.0.2",
+    "@angular/common": "21.0.3",
+    "@angular/compiler": "21.0.3",
+    "@angular/core": "21.0.3",
+    "@angular/platform-browser": "21.0.3",
     "@babel/core": "^7.28.5",
     "@bazel/bazelisk": "1.26.0",
     "@bazel/buildifier": "^7.3.1",
