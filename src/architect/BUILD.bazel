@@ -15,6 +15,7 @@ bzl_library(
         ":utils",
         "@aspect_rules_js//js:defs",
     ],
+    visibility = ["//visibility:public"],
 )
 
 bzl_library(
@@ -25,6 +26,7 @@ bzl_library(
         "@aspect_rules_js//js:defs",
         "@jq.bzl//jq",
     ],
+    visibility = ["//visibility:public"],
 )
 
 bzl_library(
@@ -34,6 +36,7 @@ bzl_library(
         ":utils",
         "@aspect_rules_js//js:defs",
     ],
+    visibility = ["//visibility:public"],
 )
 
 bzl_library(
