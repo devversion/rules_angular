@@ -8,6 +8,7 @@ def ng_package(
         substitutions = {},
         tags = [],
         replace_prefixes = {},
+        data = [],
         **kwargs):
     angular_package_format(
         name = "%s_apf" % name,
@@ -24,7 +25,7 @@ def ng_package(
         name = name,
         srcs = [
             "%s_apf_substituted" % name,
-        ] + nested_packages,
+        ] + nested_packages + data,
         replace_prefixes = dict({
             "%s_apf_substituted/%s_apf" % (name, name): "/",
             "schematics/npm_package/": "schematics/",
