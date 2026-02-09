@@ -8,6 +8,7 @@ def ng_project(
         angular_compiler_options = {},
         assets = [],
         tsconfig = None,
+        testonly = False,
         **kwargs):
     """Angular compiler specific version of ts_project, running ngc on the provided files.
 
@@ -30,6 +31,7 @@ def ng_project(
         name = "%s_ng_project_tsconfig" % name,
         angular_compiler_options = json.encode(angular_compiler_options),
         tsconfig = tsconfig,
+        testonly = testonly,
     )
 
     ts_project(
@@ -47,5 +49,6 @@ def ng_project(
             "@rules_angular//src/ng_project/config:partial_compilation_enabled": "Compiling Angular TS (partial compilation): {label}",
             "//conditions:default": "Compiling Angular TS: {label}",
         }),
+        testonly = testonly,
         **kwargs
     )
